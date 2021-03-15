@@ -1,2 +1,2 @@
 # Amicus
-Checking GitHub Why is this like this
+Checking GitHub Please
