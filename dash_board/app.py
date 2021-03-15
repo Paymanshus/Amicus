@@ -1,20 +1,53 @@
 import numpy as np
 import pandas as pd
 import datetime as dt
-import time
-from dateutil.relativedelta import relativedelta
 
 import dash
+import dash_table as dt
+import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
+
 import plotly.express as px
+
+
+# -------------------------------------Styles-------------------------------------
+# the style arguments for the sidebar.
+SIDEBAR_STYLE = {
+    'position': 'fixed',
+    'top': 0,
+    'left': 0,
+    'bottom': 0,
+    'width': '20%',
+    'padding': '20px 15px',
+    'background-color': '#f8f9fa'
+}
+
+# the style arguments for the main content page.
+CONTENT_STYLE = {
+    'margin-left': '25%',
+    'margin-right': '5%',
+    'padding': '20px 10p'
+}
+
+TEXT_STYLE = {
+    'textAlign': 'center',
+    'color': '#191970'
+}
+
+CARD_TEXT_STYLE = {
+    'textAlign': 'center',
+    'color': '#0074D9',
+    'padding': '5px 0px'
+}
 
 df = pd.read_csv(
     r"D:\aaProjectsStuff\Amicus\Dashboard\dash_board\mega_case.csv")
 # print(df.head())
 
 
+# -------------------------------------Functions-------------------------------------
 def get_xy_from_count():
     rc_count = df['respondent_counsel'].value_counts()
 
@@ -28,121 +61,15 @@ def get_xy_from_count():
     return rc_counts_indices, rc_counts_values
 
 
-def generate_table(dataframe, max_rows=10):
-    return html.Table([
-        html.Thead(
-            html.Tr([html.Th(col) for col in dataframe.columns])
-        ),
-        html.Tbody([
-            html.Tr([
-                html.Td(dataframe.iloc[i][col]) for col in dataframe.columns
-            ]) for i in range(min(len(dataframe), max_rows))
-        ])
-    ])
+def print_details(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
+    print(n_clicks)
+    print(dropdown_value)
+    print(range_slider_value)
+    print(check_list_value)
+    print(radio_items_value)  # Sample data and figure
 
 
-def generate_input_box(type):
-
-    return dcc.Input(
-        id="{}_input".format(type),
-        type="search",
-        placeholder="Search for {}".format(type),
-    ),
-
-
-# Returning years in datetime format from df['date']
-
-
-def date_conversion_first(df):
-    years = df['date'].unique()
-    years = np.delete(years, 0)
-
-    years_list = []
-    valueErrorCounter = 0
-    typeErrorCounter = 0
-
-    for year in years:
-        try:
-            # print(type(year))
-            years_list.append(dt.datetime.strptime(year, '%B %d, %Y').date())
-
-        except ValueError as e:
-            valueErrorCounter += 1
-            continue
-        except TypeError as t:
-            typeErrorCounter += 1
-            continue
-
-    return years_list
-
-
-# TIME STUFF
-epoch = dt.datetime.utcfromtimestamp(0)
-
-
-def unix_time_millis(dt):
-
-    return (dt - epoch).total_seconds()  # * 1000.0
-
-
-daterange = pd.date_range(start='1930', end='2021', freq='AS')
-
-# def unixTimeMillis(dt):
-#     ''' Convert datetime to unix timestamp '''
-#     return int(time.mktime(dt.timetuple()))
-
-
-# def unixToDatetime(unix):
-#     ''' Convert unix timestamp to datetime. '''
-#     return pd.to_datetime(unix, unit='s')
-
-
-# def getMarks(daterange, start, end, Nth=100):
-#     ''' Returns the marks for labeling.
-#         Every Nth value will be used.
-#     '''
-
-#     result = {}
-#     for i, date in enumerate(daterange):
-#         if(i % Nth == 1):
-#             # Append value to dict
-#             result[unixTimeMillis(date)] = str(date.strftime('%Y-%m-%d'))
-
-#     return result
-
-
-def get_year_marks(start, end, inter=1):
-    ''' Returns the marks for labeling.
-        Interval for years to leave in between
-    '''
-
-    result = {}
-    for i, date in enumerate(range(start, end, inter)):
-        result[i] = str(date)
-
-    return result
-
-
-mark_test = get_year_marks(1930, 2021, inter=20)
-print(mark_test)
-
-
-# -------------------------------------DASH APP STARTS-------------------------------------
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-
-rc_counts_indices, rc_counts_values = get_xy_from_count()
-print(len(rc_counts_indices), len(rc_counts_values))
-
-# fig = px.bar(x=rc_counts_values, y=rc_counts_indices,
-#              color="judgement")
-
-
-# -------------------------------------Date Cleaning-------------------------------------
-years_list = date_conversion_first(df)
-
-# -------------------------------------Graphs-------------------------------------
+# -------------------------------------Graphs(Processing)-------------------------------------
 # Donut Graph
 jd_count = pd.DataFrame(df['judgement'].value_counts())
 jd_unique = df['judgement'].unique()
@@ -152,150 +79,392 @@ jd_count.reset_index(inplace=True)
 jd_count.columns = ['Judgement', 'No. of Cases']
 
 
-# Input Boxes
-input_types = ['appellant', 'respondent',
-               'appellant_counsel', 'respondent_counsel']
-input_boxes = []
+# Tables Data Prep
 
-for type in input_types:
-    input_boxes.append(generate_input_box(type))
+appellant_df = pd.DataFrame(df.loc[5000:5050, ['appellant']])
+respondent_df = pd.DataFrame(df.loc[5000:5050, ['respondent']])
 
+app_counsel_df = pd.DataFrame(df.loc[5000:5050, ['appellant_counsel']])
+resp_counsel_df = pd.DataFrame(df.loc[5000:5050, ['respondent_counsel']])
 
-# Table_1 Data Prep
-t1_df = pd.DataFrame(df.loc[5000:5020, ['respondent', 'appellant']])
+# TODO: Change to data indicing rather than df duplication, delete appellant_df, respondent_df, etc. and replace with df['appellant']
+# directly once scrolling issues are sorted out
 
+# -------------------------------------Layout-------------------------------------
+controls = dbc.FormGroup(
+    [
+        html.P('Range Slider', style={
+            'textAlign': 'center'
+        }),
+        dcc.RangeSlider(
+            id='range_slider',
+            min=0,
+            max=20,
+            step=0.5,
+            value=[5, 15]
+        ),
+        # html.Br(),
 
-# ----------------------------LAYOUT------------------------------
-app.layout = html.Div([
-    html.H1(children='Hello Dash'),
+        html.P('Appellant Search',
+               style={
+                   'textAlign': 'center'
+               }),
+        dbc.InputGroup([
 
-    html.Div(children='''
-        Dash: A web application framework for Python.
-    '''),
-
-    html.Div([
-
-        html.Div([
-            dcc.Dropdown(
-                id='xaxis-column',
-                options=[{'label': i, 'value': i}
-                         for i in jd_unique],
-                value=jd_unique.tolist()[:-1],
-                multi=True
+            dbc.InputGroupAddon(
+                dbc.Button("Search", id="appellant-search-button")
             ),
-            dcc.RadioItems(
-                id='xaxis-type',
-                options=[{'label': i, 'value': i} for i in ['Linear', 'Log']],
-                value='Linear',
-                labelStyle={'display': 'inline-block'}
-            )
-        ],
-            style={'width': '48%', 'display': 'inline-block'}),
+            dbc.Input(
+                id='appellant-search',
+                placeholder='Search for Appellant...'),
+        ]
+        ),
 
-        html.Div([
-            dcc.Dropdown(
-                id='yaxis-column',
-                options=[{'label': i, 'value': i}
-                         for i in jd_unique],
+        html.P('Respondent Search',
+               style={
+                   'textAlign': 'center'
+               }),
+        dbc.InputGroup([
+
+            dbc.InputGroupAddon(
+                dbc.Button("Search", id="respondent-search-button")
             ),
-            dcc.RadioItems(
-                id='yaxis-type',
-                options=[{'label': i, 'value': i} for i in ['Linear', 'Log']],
-                value='Linear',
-                labelStyle={'display': 'inline-block'}
-            )
-        ], style={'width': '48%', 'float': 'right', 'display': 'inline-block'}),
+            dbc.Input(
+                id='respondent-search',
+                placeholder='Search for respondent...'),
+        ]
+        ),
+        html.Br(),
 
-    ]),
+        html.P('Type of Judgement', style={
+            'textAlign': 'center'
+        }),
+        dcc.Dropdown(
+            id='judgement-dropdown',
+            options=[{'label': i, 'value': i}
+                     for i in jd_unique],
+            value=jd_unique.tolist()[:-1],
+            multi=True
+        ),
+        html.Br(),
 
-    html.Div([
+        # html.P('Check Box', style={
+        #     'textAlign': 'center'
+        # }),
+        # dbc.Card([dbc.Checklist(
+        #     id='check_list',
+        #     options=[{
+        #         'label': 'Value One',
+        #         'value': 'value1'
+        #     },
+        #         {
+        #             'label': 'Value Two',
+        #             'value': 'value2'
+        #     },
+        #         {
+        #             'label': 'Value Three',
+        #             'value': 'value3'
+        #     }
+        #     ],
+        #     value=['value1', 'value2'],
+        #     inline=True
+        # )]),
+        # html.Br(),
+        # html.P('Radio Items', style={
+        #     'textAlign': 'center'
+        # }),
+        # dbc.Card([dbc.RadioItems(
+        #     id='radio_items',
+        #     options=[{
+        #         'label': 'Value One',
+        #         'value': 'value1'
+        #     },
+        #         {
+        #             'label': 'Value Two',
+        #             'value': 'value2'
+        #     },
+        #         {
+        #             'label': 'Value Three',
+        #             'value': 'value3'
+        #     }
+        #     ],
+        #     value='value1',
+        #     style={
+        #         'margin': 'auto'
+        #     }
+        # )]),
+        # html.Br(),
 
-        html.Div([
-            dcc.Graph(
-                id='donut-graph',
-                # figure=fig_donut,
-            ),
+        dbc.Button(
+            id='submit_button',
+            n_clicks=0,
+            children='Submit',
+            color='primary',
+            block=True
+        ),
+    ]
+)
 
-        ],
-            style={'width': '48%', 'display': 'inline-block', 'float': 'left'}),
+sidebar = html.Div(
+    [
+        html.H2('Parameters', style=TEXT_STYLE),
+        html.Hr(),
+        controls
+    ],
+    style=SIDEBAR_STYLE,
+)
 
-        html.Div([
-            html.H3(
-                children="Table 1"
-            ),
-            generate_table(t1_df)
-        ],
-            style={'width': '48%', 'display': 'inline-block', 'float': 'right'}),
-    ]),
+content_first_row = dbc.Row([
+    dbc.Col(
+        # dbc.Table.from_dataframe(
+        #     appellant_df, striped=True, bordered=True, hover=True, responsive='sm'),
 
-    # dcc.Slider(
-    #     id='year--slider',
-    #     min=np.min(years_list),
-    #     max=np.max(years_list),
-    #     value=years_list[0],
-    #     marks={str(year): str(year) for year in years_list},
-    #     step=None
-    # )
+        dt.DataTable(
+            id='appellant-table',
+            columns=[{"name": i, "id": i} for i in appellant_df.columns],
+            data=appellant_df.to_dict('records'),
+            page_action='none',
+            fixed_rows={'headers': True},
 
-    # dcc.RangeSlider(
-    #     id='datetime_RangeSlider',
-    #     updatemode='mouseup',  # don't let it update till mouse released
-    #     min=unix_time_millis(dt.datetime.min()),
-    #     max=unix_time_millis(dt.datetime.max()),
-    #     value=[unix_time_millis(dt.datetime.min()),
-    #            unix_time_millis(dt.datetime.max())],
-    #     # TODO add markers for key dates
-    #     marks=get_marks_from_start_end(dt.datetime.min(),
-    #                                    dt.datetime.max()),
-    # ),
-
-    # dcc.RangeSlider(
-    #     id='year_slider',
-    #     min=unixTimeMillis(daterange.min()),
-    #     max=unixTimeMillis(daterange.max()),
-    #     value=[unixTimeMillis(daterange.min()),
-    #            unixTimeMillis(daterange.max())],
-    #     marks=getMarks(daterange.min(),
-    #                    daterange.max())
-    # )
-
-    dcc.RangeSlider(
-        id='year-slider',
-        min=1930,  # Try changing to dd-mm-yyyy format, use
-        max=2021,
-        step=20,
-        value=[1930, 2021],
-        marks=mark_test
+            style_as_list_view=True,
+            style_table={'height': '20em', 'overflow': 'hidden'}
+        ),
+        md=4
     ),
+    dbc.Col(
+        # dbc.Table.from_dataframe(
+        #     appellant_df, striped=True, bordered=True, hover=True, responsive='sm'),
 
-    html.Div(
-        id='date_check_div'
-    )
+        dt.DataTable(
+            id='respondent-table',
+            columns=[{"name": i, "id": i} for i in respondent_df.columns],
+            data=respondent_df.to_dict('records'),
+            page_action='none',
+            fixed_rows={'headers': True},
 
+            style_as_list_view=True,
+            style_table={'height': '20em', 'overflow': 'hidden'}
+        ),
+        md=4
+    ),
+    dbc.Col(
+        dcc.Graph(
+            id='donut-graph',
+            # figure=fig_donut,
+        ),
+        md=4
+    ),
+    # dbc.Col(
+    #     dbc.Card(
+    #         [
+    #             dbc.CardBody(
+    #                 [
+    #                     html.H4('Card Title 4', className='card-title',
+    #                             style=CARD_TEXT_STYLE),
+    #                     html.P('Sample text.', style=CARD_TEXT_STYLE),
+    #                 ]
+    #             ),
+    #         ]
+    #     ),
+    #     md=3
+    # )
 ])
 
-# Donut Graph
+content_second_row = dbc.Row(
+    [
+        dbc.Col(
+            dcc.Graph(id='graph_1'), md=4
+        ),
+        dbc.Col(
+            dcc.Graph(id='graph_2'), md=4
+        ),
+        dbc.Col(
+            dcc.Graph(id='graph_3'), md=4
+        )
+    ]
+)
+
+content_third_row = dbc.Row(
+    [
+        dbc.Col(
+            dcc.Graph(id='graph_4'), md=12,
+        )
+    ]
+)
+
+content_fourth_row = dbc.Row(
+    [
+        dbc.Col(
+            dcc.Graph(id='graph_5'), md=6
+        ),
+        dbc.Col(
+            dcc.Graph(id='graph_6'), md=6
+        )
+    ]
+)
+
+content = html.Div(
+    [
+        html.H2('Amicus.ai', style=TEXT_STYLE),
+        html.Hr(),
+        content_first_row,
+        content_second_row,
+        content_third_row,
+        content_fourth_row
+    ],
+    style=CONTENT_STYLE
+)
+
+
+app = dash.Dash(external_stylesheets=[dbc.themes.FLATLY, 'dash_board\app.css'])
+app.layout = html.Div([sidebar, content])
+
+# -------------------------------------Callbacks-------------------------------------
 
 
 @app.callback(
-    Output(component_id='donut-graph', component_property='figure'),
-    Input(component_id='xaxis-column', component_property='value')
-)
-def update_output_donut(input_values):
+    Output('graph_1', 'figure'),
+    [Input('submit_button', 'n_clicks')],
+    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
+     State('radio_items', 'value')
+     ])
+def update_graph_bottom(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
+    print_details(n_clicks, dropdown_value, range_slider_value,
+                  check_list_value, radio_items_value)
+    fig = {
+        'data': [{
+            'x': [1, 2, 3],
+            'y': [3, 4, 5]
+        }]
+    }
+    return fig
 
-    fig_donut = px.pie(data_frame=jd_count.loc[jd_count['Judgement'].isin(input_values)], values='No. of Cases',
+
+@app.callback(
+    Output('donut-graph', 'figure'),
+    [Input('submit_button', 'n_clicks')],
+    [State('judgement-dropdown', 'value'), State('range_slider', 'value')])
+def update_graph_donut(n_clicks, dropdown_value, range_slider_value):
+    fig_donut = px.pie(data_frame=jd_count.loc[jd_count['Judgement'].isin(dropdown_value)], values='No. of Cases',
                        hover_name='Judgement', hole=0.6)
+
+    # fig_donut.update_layout(transition_duration=250)
+
     return fig_donut
 
 
-# DateRange Slider Date Display
 @app.callback(
-    Output(component_id='date_check_div', component_property='children'),
-    Input('year-slider', 'value')
+    Output('graph_3', 'figure'),
+    [Input('submit_button', 'n_clicks')],
+    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
+     State('radio_items', 'value')
+     ])
+def update_graph_3(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
+    print_details(n_clicks, dropdown_value, range_slider_value,
+                  check_list_value, radio_items_value)
+
+    df = px.data.iris()
+    fig = px.density_contour(df, x='sepal_width', y='sepal_length')
+    return fig
+
+
+@app.callback(
+    Output('graph_4', 'figure'),
+    [Input('submit_button', 'n_clicks')],
+    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
+     State('radio_items', 'value')
+     ])
+def update_graph_4(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
+    print_details(n_clicks, dropdown_value, range_slider_value,
+                  check_list_value, radio_items_value)
+
+    df = px.data.gapminder().query('year==2007')
+    fig = px.scatter_geo(df, locations='iso_alpha', color='continent',
+                         hover_name='country', size='pop', projection='natural earth')
+    fig.update_layout({
+        'height': 600
+    })
+    return fig
+
+
+@app.callback(
+    Output('graph_5', 'figure'),
+    [Input('submit_button', 'n_clicks')],
+    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
+     State('radio_items', 'value')
+     ])
+def update_graph_5(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
+    print_details(n_clicks, dropdown_value, range_slider_value,
+                  check_list_value, radio_items_value)
+
+    fig = px.scatter(df, x='sepal_width', y='sepal_length')
+    return fig
+
+
+@app.callback(
+    Output('graph_6', 'figure'),
+    [Input('submit_button', 'n_clicks')],
+    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
+     State('radio_items', 'value')
+     ])
+def update_graph_6(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
+    print_details(n_clicks, dropdown_value, range_slider_value,
+                  check_list_value, radio_items_value)
+
+    df = px.data.tips()
+    fig = px.bar(df, x='total_bill', y='day', orientation='h')
+    return fig
+
+
+@app.callback(
+    Output('card_title_1', 'children'),
+    [Input('submit_button', 'n_clicks')],
+    [State('dropdown1', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
+     State('radio_items', 'value')
+     ])
+def update_card_title_1(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
+    print_details(n_clicks, dropdown_value, range_slider_value,
+                  check_list_value, radio_items_value)
+    return 'Card Tile 1 change by call back = {}'.format(dropdown_value)
+
+
+@app.callback(
+    Output('card_text_1', 'children'),
+    [Input('submit_button', 'n_clicks')],
+    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
+     State('radio_items', 'value')
+     ])
+def update_card_text_1(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
+    print(n_clicks)
+    print(dropdown_value)
+    print(range_slider_value)
+    print(check_list_value)
+    print(radio_items_value)  # Sample data and figure
+    return 'Card text change by call back'
+
+
+@app.callback(
+    Output("appellant-table", "data"),
+    [Input("appellant-search-button", "n_clicks")],
+    [State("appellant-search", 'value')],
 )
-def display_date_from_slider(input_value):
-    return f"Current selected date is {input_value}"
+def on_search_click_app(n_clicks, search_value):
+
+    search_values = []
+    search_values.extend([
+        search_value, search_value.lower(), search_value.upper()])
+
+    if n_clicks:
+        print(n_clicks, search_value)
+        if (search_value != None or search_value != '' or search_value != ' '):
+            return appellant_df[appellant_df['appellant'].str.contains(
+                '|'.join(search_values))].to_dict('records')
+            # return appellant_df[appellant_df['appellant'].str.contains(
+            #     (search_value))].to_dict('records')
+
+    else:
+        return appellant_df.to_dict('records')
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(port='8085', debug=True)
