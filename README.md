@@ -1,2 +1,2 @@
 # Amicus
-Checking GitHub VS
+Checking GitHub VS Pt. 2
