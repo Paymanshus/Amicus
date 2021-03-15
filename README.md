@@ -1,3 +1,2 @@
 # Amicus
-Checking GitHub Please
-Testing
+Amicus Dashboard
