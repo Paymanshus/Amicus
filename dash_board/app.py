@@ -61,7 +61,7 @@ def get_xy_from_count():
     return rc_counts_indices, rc_counts_values
 
 
-def print_details(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
+def print_details(n_clicks='', dropdown_value='', range_slider_value='', check_list_value='', radio_items_value=''):
     print(n_clicks)
     print(dropdown_value)
     print(range_slider_value)
@@ -97,11 +97,12 @@ controls = dbc.FormGroup(
             'textAlign': 'center'
         }),
         dcc.RangeSlider(
-            id='range_slider',
-            min=0,
-            max=20,
-            step=0.5,
-            value=[5, 15]
+            id='date-range-slider',
+            min=2016,
+            max=2021,
+            step=1,
+            marks={2015: '2015', 2017: '2017',  2020: '2020'},
+            value=[2015, 2020]
         ),
         # html.Br(),
 
@@ -325,7 +326,7 @@ app.layout = html.Div([sidebar, content])
 @app.callback(
     Output('graph_1', 'figure'),
     [Input('submit_button', 'n_clicks')],
-    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
+    [State('dropdown', 'value'), State('date-range-slider', 'value'), State('check_list', 'value'),
      State('radio_items', 'value')
      ])
 def update_graph_bottom(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
@@ -343,7 +344,7 @@ def update_graph_bottom(n_clicks, dropdown_value, range_slider_value, check_list
 @app.callback(
     Output('donut-graph', 'figure'),
     [Input('submit_button', 'n_clicks')],
-    [State('judgement-dropdown', 'value'), State('range_slider', 'value')])
+    [State('judgement-dropdown', 'value'), State('date-range-slider', 'value')])
 def update_graph_donut(n_clicks, dropdown_value, range_slider_value):
     fig_donut = px.pie(data_frame=jd_count.loc[jd_count['Judgement'].isin(dropdown_value)], values='No. of Cases',
                        hover_name='Judgement', hole=0.6)
@@ -356,7 +357,7 @@ def update_graph_donut(n_clicks, dropdown_value, range_slider_value):
 @app.callback(
     Output('graph_3', 'figure'),
     [Input('submit_button', 'n_clicks')],
-    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
+    [State('dropdown', 'value'), State('date-range-slider', 'value'), State('check_list', 'value'),
      State('radio_items', 'value')
      ])
 def update_graph_3(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
@@ -371,7 +372,7 @@ def update_graph_3(n_clicks, dropdown_value, range_slider_value, check_list_valu
 @app.callback(
     Output('graph_4', 'figure'),
     [Input('submit_button', 'n_clicks')],
-    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
+    [State('dropdown', 'value'), State('date-range-slider', 'value'), State('check_list', 'value'),
      State('radio_items', 'value')
      ])
 def update_graph_4(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
@@ -404,7 +405,7 @@ def update_graph_5(n_clicks, dropdown_value, range_slider_value, check_list_valu
 @app.callback(
     Output('graph_6', 'figure'),
     [Input('submit_button', 'n_clicks')],
-    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
+    [State('dropdown', 'value'), State('date-range-slider', 'value'), State('check_list', 'value'),
      State('radio_items', 'value')
      ])
 def update_graph_6(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
@@ -419,7 +420,7 @@ def update_graph_6(n_clicks, dropdown_value, range_slider_value, check_list_valu
 @app.callback(
     Output('card_title_1', 'children'),
     [Input('submit_button', 'n_clicks')],
-    [State('dropdown1', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
+    [State('dropdown', 'value'), State('date-range-slider', 'value'), State('check_list', 'value'),
      State('radio_items', 'value')
      ])
 def update_card_title_1(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
@@ -431,7 +432,7 @@ def update_card_title_1(n_clicks, dropdown_value, range_slider_value, check_list
 @app.callback(
     Output('card_text_1', 'children'),
     [Input('submit_button', 'n_clicks')],
-    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
+    [State('dropdown', 'value'), State('date-range-slider', 'value'), State('check_list', 'value'),
      State('radio_items', 'value')
      ])
 def update_card_text_1(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
@@ -455,7 +456,6 @@ def on_search_click_app(n_clicks, search_value):
         search_value, search_value.lower(), search_value.upper()])
 
     if n_clicks:
-        print(n_clicks, search_value)
         if (search_value != None or search_value != '' or search_value != ' '):
             return appellant_df[appellant_df['appellant'].str.contains(
                 '|'.join(search_values))].to_dict('records')
@@ -464,6 +464,25 @@ def on_search_click_app(n_clicks, search_value):
 
     else:
         return appellant_df.to_dict('records')
+
+
+@app.callback(
+    Output("respondent-table", "data"),
+    [Input("respondent-search-button", "n_clicks")],
+    [State("respondent-search", 'value')],
+)
+def on_search_click_resp(n_clicks, search_value):
+
+    search_values = []
+    search_values.extend([
+        search_value, search_value.lower(), search_value.upper()])
+    if n_clicks:
+        if (search_value != None or search_value != '' or search_value != ' '):
+            return respondent_df[respondent_df['respondent'].str.contains(
+                '|'.join(search_values))].to_dict('records')
+
+    else:
+        return respondent_df.to_dict('records')
 
 
 if __name__ == '__main__':
