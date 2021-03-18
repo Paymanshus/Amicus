@@ -43,22 +43,22 @@ CARD_TEXT_STYLE = {
 }
 
 df = pd.read_csv(
-    r"D:\aaProjectsStuff\Amicus\Dashboard\dash_board\mega_case.csv")
+    r"D:\aaProjectsStuff\Amicus\Dashboard\BulkDataCleaned.csv")
 # print(df.head())
 
 
 # -------------------------------------Functions-------------------------------------
-def get_xy_from_count():
-    rc_count = df['respondent_counsel'].value_counts()
+# def get_xy_from_count():
+#     rc_count = df['RespondentCounsel'].value_counts()
 
-    rc_df = pd.DataFrame(rc_count)
+#     rc_df = pd.DataFrame(rc_count)
 
-    rc_df_subset = rc_df[:10]
+#     rc_df_subset = rc_df[:10]
 
-    rc_counts_indices = rc_df_subset.index.tolist()
-    rc_counts_values = rc_df_subset.values.tolist()
+#     rc_counts_indices = rc_df_subset.index.tolist()
+#     rc_counts_values = rc_df_subset.values.tolist()
 
-    return rc_counts_indices, rc_counts_values
+#     return rc_counts_indices, rc_counts_values
 
 
 def print_details(n_clicks='', dropdown_value='', range_slider_value='', check_list_value='', radio_items_value=''):
@@ -71,8 +71,8 @@ def print_details(n_clicks='', dropdown_value='', range_slider_value='', check_l
 
 # -------------------------------------Graphs(Processing)-------------------------------------
 # Donut Graph
-jd_count = pd.DataFrame(df['judgement'].value_counts())
-jd_unique = df['judgement'].unique()
+jd_count = pd.DataFrame(df['FinalJudgement'].value_counts())
+jd_unique = df['FinalJudgement'].unique()
 jd_unique = np.delete(jd_unique, -1)
 # print(jd_unique)
 
@@ -81,13 +81,13 @@ jd_count.columns = ['Judgement', 'No. of Cases']
 
 # Tables Data Prep
 
-appellant_df = pd.DataFrame(df.loc[5000:5050, ['appellant']])
-respondent_df = pd.DataFrame(df.loc[5000:5050, ['respondent']])
+plaintiff_df = pd.DataFrame(df.loc[5000:5050, ['Plaintiff']])
+defendant_df = pd.DataFrame(df.loc[5000:5050, ['Defendant']])
 
-app_counsel_df = pd.DataFrame(df.loc[15000:15050, ['appellant_counsel']])
-resp_counsel_df = pd.DataFrame(df.loc[15000:15050, ['respondent_counsel']])
+pet_counsel_df = pd.DataFrame(df.loc[15000:15050, ['PetitionerCounsel']])
+resp_counsel_df = pd.DataFrame(df.loc[15000:15050, ['RespondentCounsel']])
 
-# TODO: Change to data indicing rather than df duplication, delete appellant_df, respondent_df, etc. and replace with df['appellant']
+# TODO: Change to data indicing rather than df duplication, delete plaintiff_df, defendant_df, etc. and replace with df['Plaintiff']
 # directly once scrolling issues are sorted out
 
 # Date Processing
@@ -132,33 +132,33 @@ controls = dbc.FormGroup(
         ),
         # html.Br(),
 
-        html.P('Appellant Search',
+        html.P('Plaintiff Search',
                style={
                    'textAlign': 'center'
                }),
         dbc.InputGroup([
 
             dbc.InputGroupAddon(
-                dbc.Button("Search", id="appellant-search-button")
+                dbc.Button("Search", id="plaintiff-search-button")
             ),
             dbc.Input(
-                id='appellant-search',
-                placeholder='Search for Appellant...'),
+                id='plaintiff-search',
+                placeholder='Search for Plaintiff...'),
         ]
         ),
 
-        html.P('Respondent Search',
+        html.P('Defendant Search',
                style={
                    'textAlign': 'center'
                }),
         dbc.InputGroup([
 
             dbc.InputGroupAddon(
-                dbc.Button("Search", id="respondent-search-button")
+                dbc.Button("Search", id="defendant-search-button")
             ),
             dbc.Input(
-                id='respondent-search',
-                placeholder='Search for respondent...'),
+                id='defendant-search',
+                placeholder='Search for defendant...'),
         ]
         ),
         html.Br(),
@@ -175,17 +175,17 @@ controls = dbc.FormGroup(
         ),
         html.Br(),
 
-        html.P('Appellant Counsel Search',
+        html.P('Petitioner Counsel Search',
                style={
                    'textAlign': 'center'
                }),
         dbc.InputGroup([
 
             dbc.InputGroupAddon(
-                dbc.Button("Search", id="app-counsel-search-button")
+                dbc.Button("Search", id="pet-counsel-search-button")
             ),
             dbc.Input(
-                id='app-counsel-search',
+                id='pet-counsel-search',
                 placeholder='Search...'),
         ]
         ),
@@ -275,12 +275,12 @@ sidebar = html.Div(
 content_first_row = dbc.Row([
     dbc.Col(
         # dbc.Table.from_dataframe(
-        #     appellant_df, striped=True, bordered=True, hover=True, responsive='sm'),
+        #     plaintiff_df, striped=True, bordered=True, hover=True, responsive='sm'),
 
         dt.DataTable(
-            id='appellant-table',
-            columns=[{"name": i, "id": i} for i in appellant_df.columns],
-            data=appellant_df.to_dict('records'),
+            id='plaintiff-table',
+            columns=[{"name": i, "id": i} for i in plaintiff_df.columns],
+            data=plaintiff_df.to_dict('records'),
             page_action='none',
             fixed_rows={'headers': True},
 
@@ -291,12 +291,12 @@ content_first_row = dbc.Row([
     ),
     dbc.Col(
         # dbc.Table.from_dataframe(
-        #     appellant_df, striped=True, bordered=True, hover=True, responsive='sm'),
+        #     plaintiff_df, striped=True, bordered=True, hover=True, responsive='sm'),
 
         dt.DataTable(
-            id='respondent-table',
-            columns=[{"name": i, "id": i} for i in respondent_df.columns],
-            data=respondent_df.to_dict('records'),
+            id='defendant-table',
+            columns=[{"name": i, "id": i} for i in defendant_df.columns],
+            data=defendant_df.to_dict('records'),
             page_action='none',
             fixed_rows={'headers': True},
 
@@ -340,9 +340,9 @@ content_second_row = dbc.Row(
 content_third_row = dbc.Row([
     dbc.Col(
         dt.DataTable(
-            id='appellant-counsel-table',
-            columns=[{"name": i, "id": i} for i in app_counsel_df.columns],
-            data=app_counsel_df.to_dict('records'),
+            id='petitioner-counsel-table',
+            columns=[{"name": i, "id": i} for i in pet_counsel_df.columns],
+            data=pet_counsel_df.to_dict('records'),
             page_action='none',
             fixed_rows={'headers': True},
 
@@ -353,7 +353,7 @@ content_third_row = dbc.Row([
     ),
     dbc.Col(
         dt.DataTable(
-            id='respondent-counsel-table',
+            id='defendant-counsel-table',
             columns=[{"name": i, "id": i} for i in resp_counsel_df.columns],
             data=resp_counsel_df.to_dict('records'),
             page_action='none',
@@ -397,7 +397,7 @@ content = html.Div(
 
 
 app = dash.Dash(external_stylesheets=[
-                dbc.themes.LUX, 'dash_board\app.css'])
+                dbc.themes.LUX, 'dash_board\styles\app.css'])
 app.layout = html.Div([sidebar, content])
 
 # -------------------------------------Callbacks-------------------------------------
@@ -413,8 +413,8 @@ def update_graph_donut(n_clicks, dropdown_value, range_slider_value):
     # judgement_df = df[df[]]
     judgement_df = df
 
-    jd_count = pd.DataFrame(judgement_df['judgement'].value_counts())
-    jd_unique = judgement_df['judgement'].unique()
+    jd_count = pd.DataFrame(judgement_df['FinalJudgement'].value_counts())
+    jd_unique = judgement_df['FinalJudgement'].unique()
     jd_unique = np.delete(jd_unique, -1)
     print(jd_unique)
 
@@ -437,10 +437,9 @@ def update_graph_donut(n_clicks, dropdown_value, range_slider_value):
 def update_graph_line(n_clicks, dropdown_value, range_slider_value):
     print_details(n_clicks, dropdown_value, range_slider_value)
 
-    area_df = df.loc[df['Judgement'].isin(dropdown_value)]
+    area_df = df.loc[df['FinalJudgement'].isin(dropdown_value)]
 
-    fig = px.area(area_df, x='date_clean', color="judgement")
-    # fig = px.area(x=df['date_clean'], color=)
+    fig = px.area(area_df, x='DateFiled', color="FinalJudgement")
 
     return fig
 
@@ -457,9 +456,9 @@ def update_graph_line(n_clicks, dropdown_value, range_slider_value):
 
 
 @app.callback(
-    Output("appellant-table", "data"),
-    [Input("appellant-search-button", "n_clicks")],
-    [State("appellant-search", 'value')],
+    Output("plaintiff-table", "data"),
+    [Input("plaintiff-search-button", "n_clicks")],
+    [State("plaintiff-search", 'value')],
 )
 def on_search_click_app(n_clicks, search_value):
 
@@ -469,19 +468,19 @@ def on_search_click_app(n_clicks, search_value):
         if (search_value != None or search_value != '' or search_value != ' '):
             search_values.extend([
                 search_value, search_value.lower(), search_value.upper()])
-            return appellant_df[appellant_df['appellant'].str.contains(
+            return plaintiff_df[plaintiff_df['Plaintiff'].str.contains(
                 '|'.join(search_values))].to_dict('records')
-            # return appellant_df[appellant_df['appellant'].str.contains(
+            # return plaintiff_df[plaintiff_df['Plaintiff'].str.contains(
             #     (search_value))].to_dict('records')
 
     else:
-        return appellant_df.to_dict('records')
+        return plaintiff_df.to_dict('records')
 
 
 @app.callback(
-    Output("respondent-table", "data"),
-    [Input("respondent-search-button", "n_clicks")],
-    [State("respondent-search", 'value')],
+    Output("defendant-table", "data"),
+    [Input("defendant-search-button", "n_clicks")],
+    [State("defendant-search", 'value')],
 )
 def on_search_click_resp(n_clicks, search_value):
 
@@ -491,17 +490,17 @@ def on_search_click_resp(n_clicks, search_value):
         if (search_value != None or search_value != '' or search_value != ' '):
             search_values.extend([
                 search_value, search_value.lower(), search_value.upper()])
-            return respondent_df[respondent_df['respondent'].str.contains(
+            return defendant_df[defendant_df['Defendant'].str.contains(
                 '|'.join(search_values))].to_dict('records')
 
     else:
-        return respondent_df.to_dict('records')
+        return defendant_df.to_dict('records')
 
 
 @app.callback(
-    Output("appellant-counsel-table", "data"),
-    [Input("app-counsel-search-button", "n_clicks")],
-    [State("app-counsel-search", 'value')],
+    Output("petitioner-counsel-table", "data"),
+    [Input("pet-counsel-search-button", "n_clicks")],
+    [State("pet-counsel-search", 'value')],
 )
 def on_search_click_ac(n_clicks, search_value):
 
@@ -511,17 +510,17 @@ def on_search_click_ac(n_clicks, search_value):
         if (search_value != None or search_value != '' or search_value != ' '):
             search_values.extend([
                 search_value, search_value.lower(), search_value.upper()])
-            return app_counsel_df[app_counsel_df['appellant_counsel'].str.contains(
+            return pet_counsel_df[pet_counsel_df['PetitionerCounsel'].str.contains(
                 '|'.join(search_values))].to_dict('records')
-            # return appellant_df[appellant_df['appellant'].str.contains(
+            # return plaintiff_df[plaintiff_df['Plaintiff'].str.contains(
             #     (search_value))].to_dict('records')
 
     else:
-        return app_counsel_df.to_dict('records')
+        return pet_counsel_df.to_dict('records')
 
 
 @app.callback(
-    Output("respondent-counsel-table", "data"),
+    Output("defendant-counsel-table", "data"),
     [Input("resp-counsel-search-button", "n_clicks")],
     [State("resp-counsel-search", 'value')],
 )
@@ -532,7 +531,7 @@ def on_search_click_rc(n_clicks, search_value):
         if (search_value != None or search_value != '' or search_value != ' '):
             search_values.extend([
                 search_value, search_value.lower(), search_value.upper()])
-            return resp_counsel_df[resp_counsel_df['respondent'].str.contains(
+            return resp_counsel_df[resp_counsel_df['Defendant'].str.contains(
                 '|'.join(search_values))].to_dict('records')
 
     else:
