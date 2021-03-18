@@ -42,14 +42,13 @@ CARD_TEXT_STYLE = {
     'padding': '5px 0px'
 }
 
-df = pd.read_csv(
-    r"D:\aaProjectsStuff\Amicus\Dashboard\dash_board\mega_case.csv")
+df = pd.read_csv("/Users/nmims/Desktop/Projects And Competitions/Amicus/BulkDataCleaned?.csv")
 # print(df.head())
 
 
 # -------------------------------------Functions-------------------------------------
 def get_xy_from_count():
-    rc_count = df['respondent_counsel'].value_counts()
+    rc_count = df['RespondentCounsel'].value_counts()
 
     rc_df = pd.DataFrame(rc_count)
 
@@ -71,8 +70,8 @@ def print_details(n_clicks='', dropdown_value='', range_slider_value='', check_l
 
 # -------------------------------------Graphs(Processing)-------------------------------------
 # Donut Graph
-jd_count = pd.DataFrame(df['judgement'].value_counts())
-jd_unique = df['judgement'].unique()
+jd_count = pd.DataFrame(df['FinalJudgement'].value_counts())
+jd_unique = df['FinalJudgement'].unique()
 jd_unique = np.delete(jd_unique, -1)
 # print(jd_unique)
 
@@ -81,13 +80,13 @@ jd_count.columns = ['Judgement', 'No. of Cases']
 
 # Tables Data Prep
 
-appellant_df = pd.DataFrame(df.loc[5000:5050, ['appellant']])
-respondent_df = pd.DataFrame(df.loc[5000:5050, ['respondent']])
+appellant_df = pd.DataFrame(df.loc[5000:5050, ['Plaintiff']])
+respondent_df = pd.DataFrame(df.loc[5000:5050, ['Defendant']])
 
-app_counsel_df = pd.DataFrame(df.loc[15000:15050, ['appellant_counsel']])
-resp_counsel_df = pd.DataFrame(df.loc[15000:15050, ['respondent_counsel']])
+app_counsel_df = pd.DataFrame(df.loc[15000:15050, ['PetitionerCounsel']])
+resp_counsel_df = pd.DataFrame(df.loc[15000:15050, ['RespondentCounsel']])
 
-# TODO: Change to data indicing rather than df duplication, delete appellant_df, respondent_df, etc. and replace with df['appellant']
+# TODO: Change to data indicing rather than df duplication, delete appellant_df, respondent_df, etc. and replace with df['Plaintiff']
 # directly once scrolling issues are sorted out
 
 # Date Processing
@@ -132,7 +131,7 @@ controls = dbc.FormGroup(
         ),
         # html.Br(),
 
-        html.P('Appellant Search',
+        html.P('Plaintiff Search',
                style={
                    'textAlign': 'center'
                }),
@@ -147,7 +146,7 @@ controls = dbc.FormGroup(
         ]
         ),
 
-        html.P('Respondent Search',
+        html.P('Defendant Search',
                style={
                    'textAlign': 'center'
                }),
@@ -175,7 +174,7 @@ controls = dbc.FormGroup(
         ),
         html.Br(),
 
-        html.P('Appellant Counsel Search',
+        html.P('Plaintiff Counsel Search',
                style={
                    'textAlign': 'center'
                }),
@@ -190,7 +189,7 @@ controls = dbc.FormGroup(
         ]
         ),
 
-        html.P('Respondent Counsel Search',
+        html.P('Defendant Counsel Search',
                style={
                    'textAlign': 'center'
                }),
@@ -413,8 +412,8 @@ def update_graph_donut(n_clicks, dropdown_value, range_slider_value):
     # judgement_df = df[df[]]
     judgement_df = df
 
-    jd_count = pd.DataFrame(judgement_df['judgement'].value_counts())
-    jd_unique = judgement_df['judgement'].unique()
+    jd_count = pd.DataFrame(judgement_df['FinalJudgement'].value_counts())
+    jd_unique = judgement_df['FinalJudgement'].unique()
     jd_unique = np.delete(jd_unique, -1)
     print(jd_unique)
 
@@ -469,9 +468,9 @@ def on_search_click_app(n_clicks, search_value):
         if (search_value != None or search_value != '' or search_value != ' '):
             search_values.extend([
                 search_value, search_value.lower(), search_value.upper()])
-            return appellant_df[appellant_df['appellant'].str.contains(
+            return appellant_df[appellant_df['Plaintiff'].str.contains(
                 '|'.join(search_values))].to_dict('records')
-            # return appellant_df[appellant_df['appellant'].str.contains(
+            # return appellant_df[appellant_df['Plaintiff'].str.contains(
             #     (search_value))].to_dict('records')
 
     else:
@@ -491,7 +490,7 @@ def on_search_click_resp(n_clicks, search_value):
         if (search_value != None or search_value != '' or search_value != ' '):
             search_values.extend([
                 search_value, search_value.lower(), search_value.upper()])
-            return respondent_df[respondent_df['respondent'].str.contains(
+            return respondent_df[respondent_df['Defendant'].str.contains(
                 '|'.join(search_values))].to_dict('records')
 
     else:
@@ -511,9 +510,9 @@ def on_search_click_ac(n_clicks, search_value):
         if (search_value != None or search_value != '' or search_value != ' '):
             search_values.extend([
                 search_value, search_value.lower(), search_value.upper()])
-            return app_counsel_df[app_counsel_df['appellant_counsel'].str.contains(
+            return app_counsel_df[app_counsel_df['PetitionerCounsel'].str.contains(
                 '|'.join(search_values))].to_dict('records')
-            # return appellant_df[appellant_df['appellant'].str.contains(
+            # return appellant_df[appellant_df['Plaintiff'].str.contains(
             #     (search_value))].to_dict('records')
 
     else:
@@ -532,7 +531,7 @@ def on_search_click_rc(n_clicks, search_value):
         if (search_value != None or search_value != '' or search_value != ' '):
             search_values.extend([
                 search_value, search_value.lower(), search_value.upper()])
-            return resp_counsel_df[resp_counsel_df['respondent'].str.contains(
+            return resp_counsel_df[resp_counsel_df['Defendant'].str.contains(
                 '|'.join(search_values))].to_dict('records')
 
     else:
