@@ -80,11 +80,11 @@ jd_count.columns = ['Judgement', 'No. of Cases']
 
 # Tables Data Prep
 
-appellant_df = pd.DataFrame(df.loc[5000:5050, ['Plaintiff']])
-respondent_df = pd.DataFrame(df.loc[5000:5050, ['Defendant']])
+appellant_df = pd.DataFrame(df.loc[:1000, ['Plaintiff']])
+respondent_df = pd.DataFrame(df.loc[:1000, ['Defendant']])
 
-app_counsel_df = pd.DataFrame(df.loc[15000:15050, ['PetitionerCounsel']])
-resp_counsel_df = pd.DataFrame(df.loc[15000:15050, ['RespondentCounsel']])
+app_counsel_df = pd.DataFrame(df.loc[:1000, ['PetitionerCounsel']])
+resp_counsel_df = pd.DataFrame(df.loc[:1000, ['RespondentCounsel']])
 
 # TODO: Change to data indicing rather than df duplication, delete appellant_df, respondent_df, etc. and replace with df['Plaintiff']
 # directly once scrolling issues are sorted out
