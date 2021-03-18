@@ -66,7 +66,7 @@ def date_conversion_first(df):
     for year in years:
         try:
             # print(type(year))
-            years_list.append(dt.datetime.strptime(year, '%B %d, %Y').date())
+            years_list.append(dt.datetime.strptime(year, '%d-%b-%y').date())
 
         except ValueError as e:
             valueErrorCounter += 1
