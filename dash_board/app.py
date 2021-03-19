@@ -68,6 +68,8 @@ def print_details(n_clicks='', dropdown_value='', range_slider_value='', check_l
     print(radio_items_value)  # Sample data and figure
 
 
+print('Run')
+
 # -------------------------------------Graphs(Processing)-------------------------------------
 # Donut Graph
 jd_count = pd.DataFrame(df['FinalJudgement'].value_counts())
@@ -454,10 +456,10 @@ content_third_row = dbc.Row([
 content_fourth_row = dbc.Row(
     [
         dbc.Col(
-            dcc.Graph(id='ac_bar_graph'), md=6
+            dcc.Graph(id='ac-bar-graph'), md=6
         ),
         dbc.Col(
-            dcc.Graph(id='rc_bar_graph'), md=6
+            dcc.Graph(id='rc-bar-graph'), md=6
         )
     ]
 )
@@ -482,6 +484,9 @@ app.layout = html.Div([sidebar, content])
 
 # -------------------------------------Callbacks-------------------------------------
 
+# GRAPHS
+
+# Donut Graph
 @app.callback(
     Output('donut-graph', 'figure'),
     [Input('submit_button', 'n_clicks')],
@@ -504,6 +509,8 @@ def update_graph_donut(n_clicks, dropdown_value, range_slider_value):
     # fig_donut.update_layout(transition_duration=250)
 
     return fig_donut
+
+# Line/Area Graph
 
 
 @app.callback(
@@ -529,17 +536,62 @@ def update_graph_line(n_clicks, dropdown_value, range_slider_value):
     return fig
 
 
-# @app.callback(
-#     Output('card_title_1', 'children'),
-#     [Input('submit_button', 'n_clicks')],
-#     [State('judgement-dropdown', 'value'), State('date-range-slider', 'value')
-#      ])
-# def update_card_title_1(n_clicks, dropdown_value, range_slider_value):
-#     print_details(n_clicks, dropdown_value, range_slider_value,
-#                   )
-#     return 'Card Tile 1 change by call back = {}'.format(dropdown_value)
+# Stacked Bar Graph
+# Petitioner Counsel
+@app.callback(
+    Output('ac-bar-graph', 'figure'),
+    [Input('submit_button', 'n_clicks')],
+    [State('judgement-dropdown', 'value'), State('date-range-slider', 'value')
+     ])
+def update_graph_bar_ac(n_clicks, dropdown_value, range_slider_value):
+
+    # Judgement filtering on the basis of selected dropdown values
+    bar_df = df.loc[df['FinalJudgement'].isin(dropdown_value)]
+
+    # DateTime conversions for area graph
+    bar_df1 = bar_df.groupby(['PetitionerCounsel', 'FinalJudgement']).count()[
+        'Judge'].reset_index()
+    bar_df2 = bar_df1.groupby(['PetitionerCounsel']).sum().reset_index()
+    final = pd.merge(bar_df1, bar_df2, on=['PetitionerCounsel'])
+    final['Percent'] = (final['Judge_x'] / final['Judge_y']) * 100
+
+    fig = px.bar(final[:50], y='Percent',
+                 x='PetitionerCounsel', color='FinalJudgement')
+    fig.update_xaxes(showticklabels=False)
+    # fig.update_yaxes()
+
+    return fig
 
 
+# Respondent Counsel
+@app.callback(
+    Output('rc-bar-graph', 'figure'),
+    [Input('submit_button', 'n_clicks')],
+    [State('judgement-dropdown', 'value'), State('date-range-slider', 'value')
+     ])
+def update_graph_bar_rc(n_clicks, dropdown_value, range_slider_value):
+    # print_details(n_clicks, dropdown_value, range_slider_value)
+
+    # Judgement filtering on the basis of selected dropdown values
+    bar_df = df.loc[df['FinalJudgement'].isin(dropdown_value)]
+
+    # DateTime conversions for area graph
+    bar_df1 = bar_df.groupby(['RespondentCounsel', 'FinalJudgement']).count()[
+        'Judge'].reset_index()
+    bar_df2 = bar_df1.groupby(['RespondentCounsel']).sum().reset_index()
+    final = pd.merge(bar_df1, bar_df2, on=['RespondentCounsel'])
+    final['Percent'] = (final['Judge_x'] / final['Judge_y']) * 100
+
+    fig = px.bar(final[:50], y='Percent',
+                 x='RespondentCounsel', color='FinalJudgement')
+    fig.update_xaxes(showticklabels=False)
+    # fig.update_yaxes()
+
+    return fig
+
+
+# TABLES
+# Plaintiff Table
 @app.callback(
     Output("plaintiff-table", "data"),
     [Input("plaintiff-search-button", "n_clicks")],
