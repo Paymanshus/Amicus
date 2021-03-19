@@ -43,8 +43,7 @@ CARD_TEXT_STYLE = {
 }
 
 df = pd.read_csv(
-    r"D:\aaProjectsStuff\Amicus\Dashboard\BulkDataCleaned.csv")
-# print(df.head())
+    r"D:\aaProjectsStuff\Amicus\Dashboard\newNewData.csv")
 
 
 # -------------------------------------Functions-------------------------------------
@@ -73,7 +72,7 @@ def print_details(n_clicks='', dropdown_value='', range_slider_value='', check_l
 # Donut Graph
 jd_count = pd.DataFrame(df['FinalJudgement'].value_counts())
 jd_unique = df['FinalJudgement'].unique()
-jd_unique = np.delete(jd_unique, -1)
+
 # print(jd_unique)
 
 jd_count.reset_index(inplace=True)
@@ -415,8 +414,8 @@ def update_graph_donut(n_clicks, dropdown_value, range_slider_value):
 
     jd_count = pd.DataFrame(judgement_df['FinalJudgement'].value_counts())
     jd_unique = judgement_df['FinalJudgement'].unique()
-    jd_unique = np.delete(jd_unique, -1)
-    print(jd_unique)
+
+    # print(jd_unique)
 
     jd_count.reset_index(inplace=True)
     jd_count.columns = ['Judgement', 'No. of Cases']
