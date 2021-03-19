@@ -43,7 +43,7 @@ CARD_TEXT_STYLE = {
 }
 
 df = pd.read_csv(
-    r"D:\aaProjectsStuff\Amicus\Dashboard\newNewData.csv")
+    r"D:\aaProjectsStuff\Amicus\Dashboard\newpartidk.csv")
 
 
 # -------------------------------------Functions-------------------------------------
@@ -80,11 +80,24 @@ jd_count.columns = ['Judgement', 'No. of Cases']
 
 # Tables Data Prep
 
-plaintiff_df = pd.DataFrame(df.loc[5000:5050, ['Plaintiff']])
-defendant_df = pd.DataFrame(df.loc[5000:5050, ['Defendant']])
+plaintiff_df = pd.DataFrame(df.loc[:, ['Plaintiff']])
+defendant_df = pd.DataFrame(df.loc[:, ['Defendant']])
 
-pet_counsel_df = pd.DataFrame(df.loc[15000:15050, ['PetitionerCounsel']])
-resp_counsel_df = pd.DataFrame(df.loc[15000:15050, ['RespondentCounsel']])
+pet_counsel_df = pd.DataFrame(
+    df.loc[:, ['PetitionerCounsel']])
+resp_counsel_df = pd.DataFrame(
+    df.loc[:, ['RespondentCounsel']])
+
+
+# Line Graph Prep
+
+df['month_year'] = df.DateFiled.apply(
+    lambda x: x.split('-')[1] + '/' + x.split('-')[0])
+
+area_df = df.groupby(['month_year', 'FinalJudgement']).count()['Judge']
+area_df = area_df.reset_index()
+area_df.month_year = (pd.to_datetime(area_df.month_year))
+area_df = area_df.sort_values(by='month_year')
 
 # TODO: Change to data indicing rather than df duplication, delete plaintiff_df, defendant_df, etc. and replace with df['Plaintiff']
 # directly once scrolling issues are sorted out
@@ -278,13 +291,20 @@ content_first_row = dbc.Row([
 
         dt.DataTable(
             id='plaintiff-table',
-            columns=[{"name": i, "id": i} for i in plaintiff_df.columns],
-            data=plaintiff_df.to_dict('records'),
+            # columns=[{"name": i, "id": i} for i in plaintiff_df.columns],
+            columns=[{"name": "Plaintiff", "id": "Plaintiff"}],
+            data=df[['Plaintiff']][:50].to_dict('records'),
             page_action='none',
             fixed_rows={'headers': True},
 
             style_as_list_view=True,
-            style_table={'height': '20em', 'overflow': 'hidden'}
+            style_cell={'padding': '5px'},
+            style_header={
+                'backgroundColor': 'white',
+                'fontWeight': 'bold'
+            },
+            style_cell_conditional=[{'textAlign': 'left'}],
+            style_table={'height': '300px', 'overflow': 'hidden'}
         ),
         md=4
     ),
@@ -294,13 +314,20 @@ content_first_row = dbc.Row([
 
         dt.DataTable(
             id='defendant-table',
-            columns=[{"name": i, "id": i} for i in defendant_df.columns],
-            data=defendant_df.to_dict('records'),
+            # columns=[{"name": i, "id": i} for i in defendant_df.columns],
+            columns=[{"name": "Defendant", "id": "Defendant"}],
+            data=df[['Defendant']][:50].to_dict('records'),
             page_action='none',
             fixed_rows={'headers': True},
 
             style_as_list_view=True,
-            style_table={'height': '20em', 'overflow': 'hidden'}
+            style_cell={'padding': '5px'},
+            style_header={
+                'backgroundColor': 'white',
+                'fontWeight': 'bold'
+            },
+            style_cell_conditional=[{'textAlign': 'left'}],
+            style_table={'height': '300px', 'overflow': 'hidden'}
         ),
         md=4
     ),
@@ -340,28 +367,81 @@ content_third_row = dbc.Row([
     dbc.Col(
         dt.DataTable(
             id='petitioner-counsel-table',
-            columns=[{"name": i, "id": i} for i in pet_counsel_df.columns],
-            data=pet_counsel_df.to_dict('records'),
+            # columns=[{"name": i, "id": i} for i in pet_counsel_df.columns],
+            columns=[{"name": "Petitioner Counsel", "id": "PetitionerCounsel"}],
+            data=df[["PetitionerCounsel"]][:50].to_dict('records'),
             page_action='none',
             fixed_rows={'headers': True},
 
+            css=[{
+                 'selector': '.dash-spreadsheet td div',
+                 'rule': '''
+                    line-height: 15px;
+                    max-height: 30px; min-height: 30px; height: 30px;
+                    max-width: 300px;
+                    display: block;
+                    overflow-y: hidden;
+                '''
+                 }],
+
+            tooltip_data=[
+                {
+                    column: {'value': str(value), 'type': 'markdown'}
+                    for column, value in row.items()
+                } for row in df[['PetitionerCounsel']][:50].to_dict('records')
+            ],
+            tooltip_duration=None,
+
             style_as_list_view=True,
-            style_table={'height': '20em', 'overflow': 'hidden'}
+            style_cell={'padding': '5px'},
+            style_header={
+                'backgroundColor': 'white',
+                'fontWeight': 'bold'
+            },
+            style_cell_conditional=[{'textAlign': 'left'}],
+            style_table={'height': '300px', 'overflow': 'hidden'}
         ),
-        md=4
+        md=6
     ),
     dbc.Col(
         dt.DataTable(
             id='defendant-counsel-table',
-            columns=[{"name": i, "id": i} for i in resp_counsel_df.columns],
-            data=resp_counsel_df.to_dict('records'),
+            # columns=[{"name": i, "id": i} for i in resp_counsel_df.columns],
+            columns=[{"name": "Respondent Counsel", "id": "RespondentCounsel"}],
+            data=df[['RespondentCounsel']][:50].to_dict('records'),
             page_action='none',
             fixed_rows={'headers': True},
 
+            css=[{
+                'selector': '.dash-spreadsheet td div',
+                'rule': '''
+                    line-height: 15px;
+                    max-height: 30px; min-height: 30px; height: 30px;
+                    max-width: 300px;
+                    display: block;
+                    overflow-y: hidden;
+                '''
+            }],
+
+            tooltip_data=[
+                {
+                    column: {'value': str(value), 'type': 'markdown'}
+                    for column, value in row.items()
+                } for row in df[['RespondentCounsel']][:50].to_dict('records')
+            ],
+            tooltip_duration=None,
+
+
             style_as_list_view=True,
-            style_table={'height': '20em', 'overflow': 'hidden'}
+            style_cell={'padding': '5px'},
+            style_header={
+                'backgroundColor': 'white',
+                'fontWeight': 'bold'
+            },
+            style_cell_conditional=[{'textAlign': 'left'}],
+            style_table={'height': '300px', 'overflow': 'hidden'}
         ),
-        md=4
+        md=6
     ),
     # dbc.Col(
     #     dcc.Graph(
@@ -399,8 +479,8 @@ app = dash.Dash(external_stylesheets=[
                 dbc.themes.LUX, 'dash_board\styles\app.css'])
 app.layout = html.Div([sidebar, content])
 
-# -------------------------------------Callbacks-------------------------------------
 
+# -------------------------------------Callbacks-------------------------------------
 
 @app.callback(
     Output('donut-graph', 'figure'),
@@ -414,8 +494,6 @@ def update_graph_donut(n_clicks, dropdown_value, range_slider_value):
 
     jd_count = pd.DataFrame(judgement_df['FinalJudgement'].value_counts())
     jd_unique = judgement_df['FinalJudgement'].unique()
-
-    # print(jd_unique)
 
     jd_count.reset_index(inplace=True)
     jd_count.columns = ['Judgement', 'No. of Cases']
@@ -434,11 +512,19 @@ def update_graph_donut(n_clicks, dropdown_value, range_slider_value):
     [State('judgement-dropdown', 'value'), State('date-range-slider', 'value')
      ])
 def update_graph_line(n_clicks, dropdown_value, range_slider_value):
-    print_details(n_clicks, dropdown_value, range_slider_value)
+    # print_details(n_clicks, dropdown_value, range_slider_value)
 
+    # Judgement filtering on the basis of selected dropdown values
     area_df = df.loc[df['FinalJudgement'].isin(dropdown_value)]
 
-    fig = px.area(area_df, x='DateFiled', color="FinalJudgement")
+    # DateTime conversions for area graph
+    area_df = area_df.groupby(
+        ['month_year', 'FinalJudgement']).count()['Judge']
+    area_df = area_df.reset_index()
+    area_df.month_year = (pd.to_datetime(area_df.month_year))
+    area_df = area_df.sort_values(by='month_year')
+
+    fig = px.area(area_df, x='month_year', y='Judge', color='FinalJudgement')
 
     return fig
 
@@ -473,7 +559,7 @@ def on_search_click_app(n_clicks, search_value):
             #     (search_value))].to_dict('records')
 
     else:
-        return plaintiff_df.to_dict('records')
+        return plaintiff_df.iloc[:30].to_dict('records')
 
 
 @app.callback(
@@ -493,7 +579,7 @@ def on_search_click_resp(n_clicks, search_value):
                 '|'.join(search_values))].to_dict('records')
 
     else:
-        return defendant_df.to_dict('records')
+        return defendant_df[:30].to_dict('records')
 
 
 @app.callback(
@@ -515,7 +601,7 @@ def on_search_click_ac(n_clicks, search_value):
             #     (search_value))].to_dict('records')
 
     else:
-        return pet_counsel_df.to_dict('records')
+        return pet_counsel_df[:30].to_dict('records')
 
 
 @app.callback(
@@ -532,9 +618,10 @@ def on_search_click_rc(n_clicks, search_value):
                 search_value, search_value.lower(), search_value.upper()])
             return resp_counsel_df[resp_counsel_df['Defendant'].str.contains(
                 '|'.join(search_values))].to_dict('records')
+            # TODO: No data found if return is blank/none
 
     else:
-        return resp_counsel_df.to_dict('records')
+        return resp_counsel_df[:30].to_dict('records')
 
 
 if __name__ == '__main__':
