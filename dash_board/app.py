@@ -68,7 +68,7 @@ def print_details(n_clicks='', dropdown_value='', range_slider_value='', check_l
     print(radio_items_value)  # Sample data and figure
 
 
-print('Run')
+print(datetime.datetime.now())
 
 # -------------------------------------Graphs(Processing)-------------------------------------
 # Donut Graph
@@ -306,7 +306,7 @@ content_first_row = dbc.Row([
                 'fontWeight': 'bold'
             },
             style_cell_conditional=[{'textAlign': 'left'}],
-            style_table={'height': '300px', 'overflow': 'hidden'}
+            style_table={'height': '426px', 'overflow': 'hidden'}
         ),
         md=4
     ),
@@ -329,7 +329,7 @@ content_first_row = dbc.Row([
                 'fontWeight': 'bold'
             },
             style_cell_conditional=[{'textAlign': 'left'}],
-            style_table={'height': '300px', 'overflow': 'hidden'}
+            style_table={'height': '426px', 'overflow': 'hidden'}
         ),
         md=4
     ),
@@ -380,7 +380,7 @@ content_third_row = dbc.Row([
                  'rule': '''
                     line-height: 15px;
                     max-height: 30px; min-height: 30px; height: 30px;
-                    max-width: 300px;
+                   
                     display: block;
                     overflow-y: hidden;
                 '''
@@ -394,8 +394,17 @@ content_third_row = dbc.Row([
             ],
             tooltip_duration=None,
 
+            style_data={
+                'whiteSpace': 'normal',
+                'height': 'auto'
+            },
             style_as_list_view=True,
-            style_cell={'padding': '5px'},
+            style_cell={
+                'padding': '5px',
+                'whiteSpace': 'normal',
+                'height': 'auto',
+                'minWidth': '180px', 'width': '180px', 'maxWidth': '180px',
+            },
             style_header={
                 'backgroundColor': 'white',
                 'fontWeight': 'bold'
@@ -435,7 +444,12 @@ content_third_row = dbc.Row([
 
 
             style_as_list_view=True,
-            style_cell={'padding': '5px'},
+            style_cell={
+                'padding': '5px',
+                'whiteSpace': 'normal',
+                'height': 'auto',
+                'minWidth': '180px', 'width': '180px', 'maxWidth': '180px',
+            },
             style_header={
                 'backgroundColor': 'white',
                 'fontWeight': 'bold'
