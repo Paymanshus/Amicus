@@ -146,7 +146,7 @@ controls = dbc.FormGroup(
             max=2021,
             step=1,
             marks={2015: '2015', 2018: '2018',  2021: '2021'},
-            value=[2018, 2020],
+            value=[2015, 2021],
             pushable=1
         ),
         # html.Br(),
@@ -244,6 +244,29 @@ sidebar = html.Div(
     ],
     style=SIDEBAR_STYLE,
 )
+
+# TODO: Add keyword search through CaseFiles
+
+content_search_row = dbc.Row([
+    html.Div([
+        html.H4('Keyword Search',
+                style={
+                    'textAlign': 'center'
+                },
+                className='search-header'),
+    ],
+        className='search-header-div'),
+    dbc.InputGroup([
+        dbc.InputGroupAddon(
+            dbc.Button("Search", id="keyword-search-button")
+        ),
+        dbc.Input(
+            id='keyword-search',
+            placeholder='Search...'),
+    ],
+        style={'padding': '5px 25px 25px 25px'}
+    ),
+])
 
 content_first_row = dbc.Row([
     dbc.Col(
@@ -405,12 +428,6 @@ content_third_row = dbc.Row([
         ),
         md=6
     ),
-    # dbc.Col(
-    #     dcc.Graph(
-    #         id='donut-graph',
-    #     ),
-    #     md=4
-    # ),
 ])
 
 content_fourth_row = dbc.Row(
@@ -424,14 +441,68 @@ content_fourth_row = dbc.Row(
     ]
 )
 
+content_fifth_row = dbc.Row(
+    [
+        dbc.Col(
+            dt.DataTable(
+                id='cases-table',
+                columns=[{"name": "Case Files", "id": "CaseFile"}],
+                data=df[['CaseFile']][:50].to_dict('records'),
+                page_action='none',
+                fixed_rows={'headers': True},
+
+
+                css=[{
+                    'selector': '.dash-spreadsheet td div',
+                    'rule': '''
+                    line-height: 15px;
+                    max-height: 30px; min-height: 30px; height: 30px;
+                   
+                    display: block;
+                    overflow-y: hidden;
+                '''
+                }],
+
+                tooltip_data=[
+                    {
+                        column: {'value': str(value), 'type': 'markdown'}
+                        for column, value in row.items()
+                    } for row in df[['CaseFile']][:50].to_dict('records')
+                ],
+                tooltip_duration=None,
+
+                style_data={
+                    'whiteSpace': 'normal',
+                    'height': 'auto'
+                },
+                style_as_list_view=True,
+                style_cell={
+                    'padding': '5px',
+                    'whiteSpace': 'normal',
+                    'height': 'auto',
+                    'minWidth': '180px', 'width': '180px', 'maxWidth': '360px',
+                },
+                style_header={
+                    'backgroundColor': 'white',
+                    'fontWeight': 'bold'
+                },
+                style_cell_conditional=[{'textAlign': 'left'}],
+                style_table={'height': '300px', 'overflow': 'hidden'}
+            ), md=12
+        )
+    ], style={'padding': '20px 0px'}
+)
+
 content = html.Div(
     [
         html.H2('Amicus.ai', style=TEXT_STYLE),
         html.Hr(),
+        content_search_row,
         content_first_row,
         content_second_row,
         content_third_row,
-        content_fourth_row
+        # content_fourth_row,
+        content_fifth_row
     ],
     style=CONTENT_STYLE
 )
@@ -462,10 +533,13 @@ def update_graph_donut(n_clicks, dropdown_value, range_slider_value):
     jd_count.reset_index(inplace=True)
     jd_count.columns = ['Judgement', 'No. of Cases']
 
+    # TODO: Add Legend
     fig_donut = px.pie(data_frame=jd_count.loc[jd_count['Judgement'].isin(dropdown_value)], values='No. of Cases',
-                       hover_name='Judgement', hole=0.6)
+                       hover_name='Judgement', hole=0.6,
+                       color_discrete_sequence=[px.colors.qualitative.Plotly[1], px.colors.qualitative.Plotly[2], px.colors.qualitative.Plotly[0]])
 
-    # fig_donut.update_layout(transition_duration=250)
+    fig_donut.update_layout(transition_duration=1000)
+    fig_donut.update_layout(margin=dict(t=60, b=60, l=60, r=60))
 
     return fig_donut
 
@@ -493,13 +567,19 @@ def update_graph_line(n_clicks, dropdown_value, range_slider_value):
     area_df.month_year = (pd.to_datetime(area_df.month_year))
     area_df = area_df.sort_values(by='month_year')
 
-    fig = px.area(area_df, x='month_year', y='Judge', color='FinalJudgement')
+    fig = px.area(area_df, x='month_year', y='Judge',
+                  color='FinalJudgement', labels={'FinalJudgement': 'Judgement'})
+
+    fig.update_layout(transition_duration=500)
+    fig.update_xaxes(title_text='Date')
 
     return fig
-
+# TODO: Change color scheme of graphs (consistent color scheme)
 
 # Stacked Bar Graph
 # Petitioner Counsel
+
+
 @app.callback(
     Output('ac-bar-graph', 'figure'),
     [Input('submit_button', 'n_clicks')],
@@ -521,6 +601,7 @@ def update_graph_bar_ac(n_clicks, dropdown_value, range_slider_value):
 
     fig = px.bar(final[:50], y='Percent',
                  x='PetitionerCounsel', color='FinalJudgement')
+    fig.update_layout(transition_duration=500)
     fig.update_xaxes(showticklabels=False)
     # fig.update_yaxes()
 
@@ -550,6 +631,7 @@ def update_graph_bar_rc(n_clicks, dropdown_value, range_slider_value):
 
     fig = px.bar(final[:50], y='Percent',
                  x='RespondentCounsel', color='FinalJudgement')
+    fig.update_layout(transition_duration=500)
     fig.update_xaxes(showticklabels=False)
     # fig.update_yaxes()
 
@@ -580,7 +662,8 @@ def on_search_click_app(n_clicks, sub_clicks, search_value, dropdown_value, rang
 
     search_values = []
 
-    if n_clicks:
+    # if n_clicks:
+    if (n_clicks != None) | (sub_clicks != None):
         if (search_value != None or search_value != '' or search_value != ' '):
             search_values.extend([
                 search_value, search_value.lower(), search_value.upper()])
@@ -615,7 +698,8 @@ def on_search_click_resp(n_clicks, sub_clicks, search_value, dropdown_value, ran
 
     search_values = []
 
-    if n_clicks:
+    # if n_clicks:
+    if (n_clicks != None) | (sub_clicks != None):
         if (search_value != None or search_value != '' or search_value != ' '):
             search_values.extend([
                 search_value, search_value.lower(), search_value.upper()])
@@ -650,7 +734,8 @@ def on_search_click_ac(n_clicks, sub_clicks, search_value, dropdown_value, range
 
     search_values = []
 
-    if n_clicks:
+    # if n_clicks:
+    if (n_clicks != None) | (sub_clicks != None):
         if (search_value != None or search_value != '' or search_value != ' '):
             search_values.extend([
                 search_value, search_value.lower(), search_value.upper()])
@@ -685,7 +770,9 @@ def on_search_click_rc(n_clicks, sub_clicks, search_value, dropdown_value, range
         resp_counsel_df.loc[:, ['RespondentCounsel']])
 
     search_values = []
-    if n_clicks:
+
+    # if n_clicks:
+    if (n_clicks != None) | (sub_clicks != None):
         if (search_value != None or search_value != '' or search_value != ' '):
             search_values.extend([
                 search_value, search_value.lower(), search_value.upper()])
@@ -695,6 +782,44 @@ def on_search_click_rc(n_clicks, sub_clicks, search_value, dropdown_value, range
 
     else:
         return resp_counsel_df[:30].to_dict('records')
+
+
+# CaseFiles Table
+@app.callback(
+    Output("cases-table", "data"),
+    [Input("keyword-search-button", "n_clicks"),
+     #  Input('submit_button', 'n_clicks')
+     ],
+    [State("keyword-search", 'value'), State('judgement-dropdown',
+                                             'value'), State('date-range-slider', 'value')],
+)
+def on_search_click_case(n_clicks, sub_clicks, search_value, dropdown_value, range_slider_value):
+
+    # Filtering by selected dates
+    case_df = df[(df['Year'] >= range_slider_value[0])
+                 & (df['Year'] <= range_slider_value[1])]
+
+    # Filtering by selected Judgements from dropdown menu
+    case_df = case_df.loc[case_df['FinalJudgement'].isin(
+        dropdown_value)]
+
+    # Creating separate plaintiff_df with just plaintiff column
+    case_df = pd.DataFrame(case_df.loc[:, ['CaseFile']])
+
+    search_values = []
+
+    # if n_clicks:
+    if (n_clicks != None) | (sub_clicks != None):
+        if (search_value != None or search_value != '' or search_value != ' '):
+            search_values.extend([
+                search_value, search_value.lower(), search_value.upper()])
+            return case_df[case_df['CaseFile'].str.contains(
+                '|'.join(search_values), na=False)].to_dict('records')
+            # return plaintiff_df[plaintiff_df['Plaintiff'].str.contains(
+            #     (search_value))].to_dict('records')
+
+    else:
+        return case_df.iloc[:30].to_dict('records')
 
 
 if __name__ == '__main__':

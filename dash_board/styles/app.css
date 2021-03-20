@@ -21,3 +21,8 @@ div::-webkit-scrollbar-thumb {
 .row {
     max-height: 80%;
 }
+
+.search-header {
+    align-items: center;
+    text-align: center;
+}
