@@ -28,7 +28,7 @@ SIDEBAR_STYLE = {
 CONTENT_STYLE = {
     'margin-left': '25%',
     'margin-right': '5%',
-    'padding': '20px 10p'
+    'padding': '20px 10px'
 }
 
 TEXT_STYLE = {
@@ -68,6 +68,32 @@ def print_details(n_clicks='', dropdown_value='', range_slider_value='', check_l
     print(radio_items_value)  # Sample data and figure
 
 
+def date_time_extractor(df, date_col, date_format=None, year=1, quarter=0, month=1, weekofyear=0, dayofweek=0, dayofyear=0, daysinmonth=0, timestamp=0):
+
+    df['TimeStamp'] = pd.to_datetime(df[date_col], format=date_format)
+    # print(df.head())
+
+    if year:
+        df['Year'] = df['TimeStamp'].dt.year
+    if quarter:
+        df['Quarter'] = df['TimeStamp'].dt.quarter
+    if month:
+        df['Month'] = df['TimeStamp'].dt.month
+    if weekofyear:
+        df['WeekOfYear'] = df['TimeStamp'].dt.weekofyear
+    if dayofweek:
+        df['DayOfWeek'] = df['TimeStamp'].dt.dayofweek
+    if dayofyear:
+        df['DayOfYear'] = df['TimeStamp'].dt.dayofyear
+    if daysinmonth:
+        df['DaysInMonth'] = df['TimeStamp'].dt.daysinmonth
+
+    # if (timestamp == 0):
+    # df.drop(['TimeStamp'], inplace=True)
+
+    return df
+
+
 print(datetime.datetime.now())
 
 # -------------------------------------Graphs(Processing)-------------------------------------
@@ -101,34 +127,12 @@ area_df = area_df.reset_index()
 area_df.month_year = (pd.to_datetime(area_df.month_year))
 area_df = area_df.sort_values(by='month_year')
 
-# TODO: Change to data indicing rather than df duplication, delete plaintiff_df, defendant_df, etc. and replace with df['Plaintiff']
+# TODO: Change to data indicing rather than df duplication, delete plaintiff_df, defendant_df, etc. and replace with df[['Plaintiff']]
 # directly once scrolling issues are sorted out
 
 # Date Processing
+df = date_time_extractor(df, 'DateFiled')
 
-# def date_time_extractor(df, date_col, date_format, year=1, quarter=0, month=1, weekofyear=0, dayofweek=0, dayofyear=0, daysinmonth=0, timestamp=0):
-
-#     df['TimeStamp'] = pd.to_datetime(df[date_col], format=date_format)
-
-#     if year:
-#         df['Year'] = df['TimeStamp'].dt.year
-#     if quarter:
-#         df['Quarter'] = df['TimeStamp'].dt.quarter
-#     if month:
-#         df['Month'] = df['TimeStamp'].dt.month
-#     if weekofyear:
-#         df['WeekOfYear'] = df['TimeStamp'].dt.weekofyear
-#     if dayofweek:
-#         df['DayOfWeek'] = df['TimeStamp'].dt.dayofweek
-#     if dayofyear:
-#         df['DayOfYear'] = df['TimeStamp'].dt.dayofyear
-#     if daysinmonth:
-#         df['DaysInMonth'] = df['TimeStamp'].dt.daysinmonth
-
-#     if ~timestamp:
-#         df.drop(['TimeStamp'], inplace=True)
-
-#     return df
 
 # -------------------------------------Layout-------------------------------------
 controls = dbc.FormGroup(
@@ -142,7 +146,8 @@ controls = dbc.FormGroup(
             max=2021,
             step=1,
             marks={2015: '2015', 2018: '2018',  2021: '2021'},
-            value=[2015, 2021]
+            value=[2018, 2020],
+            pushable=1
         ),
         # html.Br(),
 
@@ -172,7 +177,7 @@ controls = dbc.FormGroup(
             ),
             dbc.Input(
                 id='defendant-search',
-                placeholder='Search for defendant...'),
+                placeholder='Search for Defendant...'),
         ]
         ),
         html.Br(),
@@ -220,53 +225,6 @@ controls = dbc.FormGroup(
         ),
         html.Br(),
 
-        # html.P('Check Box', style={
-        #     'textAlign': 'center'
-        # }),
-        # dbc.Card([dbc.Checklist(
-        #     id='check_list',
-        #     options=[{
-        #         'label': 'Value One',
-        #         'value': 'value1'
-        #     },
-        #         {
-        #             'label': 'Value Two',
-        #             'value': 'value2'
-        #     },
-        #         {
-        #             'label': 'Value Three',
-        #             'value': 'value3'
-        #     }
-        #     ],
-        #     value=['value1', 'value2'],
-        #     inline=True
-        # )]),
-        # html.Br(),
-        # html.P('Radio Items', style={
-        #     'textAlign': 'center'
-        # }),
-        # dbc.Card([dbc.RadioItems(
-        #     id='radio_items',
-        #     options=[{
-        #         'label': 'Value One',
-        #         'value': 'value1'
-        #     },
-        #         {
-        #             'label': 'Value Two',
-        #             'value': 'value2'
-        #     },
-        #         {
-        #             'label': 'Value Three',
-        #             'value': 'value3'
-        #     }
-        #     ],
-        #     value='value1',
-        #     style={
-        #         'margin': 'auto'
-        #     }
-        # )]),
-        # html.Br(),
-
         dbc.Button(
             id='submit_button',
             n_clicks=0,
@@ -281,6 +239,7 @@ sidebar = html.Div(
     [
         html.H2('Parameters', style=TEXT_STYLE),
         html.Hr(),
+        # TODO: Add dcc.Tabs
         controls
     ],
     style=SIDEBAR_STYLE,
@@ -293,7 +252,6 @@ content_first_row = dbc.Row([
 
         dt.DataTable(
             id='plaintiff-table',
-            # columns=[{"name": i, "id": i} for i in plaintiff_df.columns],
             columns=[{"name": "Plaintiff", "id": "Plaintiff"}],
             data=df[['Plaintiff']][:50].to_dict('records'),
             page_action='none',
@@ -311,8 +269,6 @@ content_first_row = dbc.Row([
         md=4
     ),
     dbc.Col(
-        # dbc.Table.from_dataframe(
-        #     plaintiff_df, striped=True, bordered=True, hover=True, responsive='sm'),
 
         dt.DataTable(
             id='defendant-table',
@@ -340,20 +296,7 @@ content_first_row = dbc.Row([
         ),
         md=4
     ),
-    # dbc.Col(
-    #     dbc.Card(
-    #         [
-    #             dbc.CardBody(
-    #                 [
-    #                     html.H4('Card Title 4', className='card-title',
-    #                             style=CARD_TEXT_STYLE),
-    #                     html.P('Sample text.', style=CARD_TEXT_STYLE),
-    #                 ]
-    #             ),
-    #         ]
-    #     ),
-    #     md=3
-    # )
+
 ])
 
 content_second_row = dbc.Row(
@@ -424,15 +367,15 @@ content_third_row = dbc.Row([
             fixed_rows={'headers': True},
 
             css=[{
-                'selector': '.dash-spreadsheet td div',
-                'rule': '''
+                 'selector': '.dash-spreadsheet td div',
+                 'rule': '''
                     line-height: 15px;
                     max-height: 30px; min-height: 30px; height: 30px;
-                    max-width: 300px;
+                   
                     display: block;
                     overflow-y: hidden;
                 '''
-            }],
+                 }],
 
             tooltip_data=[
                 {
@@ -442,13 +385,16 @@ content_third_row = dbc.Row([
             ],
             tooltip_duration=None,
 
-
+            style_data={
+                'whiteSpace': 'normal',
+                'height': 'auto'
+            },
             style_as_list_view=True,
             style_cell={
                 'padding': '5px',
                 'whiteSpace': 'normal',
                 'height': 'auto',
-                'minWidth': '180px', 'width': '180px', 'maxWidth': '180px',
+                'minWidth': '180px', 'width': '180px', 'maxWidth': '360px',
             },
             style_header={
                 'backgroundColor': 'white',
@@ -490,6 +436,7 @@ content = html.Div(
     style=CONTENT_STYLE
 )
 
+# TODO: Add dcc.loading when loading
 
 app = dash.Dash(external_stylesheets=[
                 dbc.themes.LUX, 'dash_board\styles\app.css'])
@@ -499,7 +446,6 @@ app.layout = html.Div([sidebar, content])
 # -------------------------------------Callbacks-------------------------------------
 
 # GRAPHS
-
 # Donut Graph
 @app.callback(
     Output('donut-graph', 'figure'),
@@ -507,12 +453,11 @@ app.layout = html.Div([sidebar, content])
     [State('judgement-dropdown', 'value'), State('date-range-slider', 'value')])
 def update_graph_donut(n_clicks, dropdown_value, range_slider_value):
 
-    # TODO: df filtering on the basis of date before passing through and creating jd_count
-    # judgement_df = df[df[]]
-    judgement_df = df
+    judgement_df = df[(df['Year'] >= range_slider_value[0])
+                      & (df['Year'] <= range_slider_value[1])]
 
     jd_count = pd.DataFrame(judgement_df['FinalJudgement'].value_counts())
-    jd_unique = judgement_df['FinalJudgement'].unique()
+    # jd_unique = judgement_df['FinalJudgement'].unique()
 
     jd_count.reset_index(inplace=True)
     jd_count.columns = ['Judgement', 'No. of Cases']
@@ -538,6 +483,9 @@ def update_graph_line(n_clicks, dropdown_value, range_slider_value):
     # Judgement filtering on the basis of selected dropdown values
     area_df = df.loc[df['FinalJudgement'].isin(dropdown_value)]
 
+    area_df = area_df[(area_df['Year'] >= range_slider_value[0]) & (
+        area_df['Year'] <= range_slider_value[1])]
+
     # DateTime conversions for area graph
     area_df = area_df.groupby(
         ['month_year', 'FinalJudgement']).count()['Judge']
@@ -560,7 +508,9 @@ def update_graph_line(n_clicks, dropdown_value, range_slider_value):
 def update_graph_bar_ac(n_clicks, dropdown_value, range_slider_value):
 
     # Judgement filtering on the basis of selected dropdown values
-    bar_df = df.loc[df['FinalJudgement'].isin(dropdown_value)]
+    bar_df = df[(df['Year'] >= range_slider_value[0]) &
+                (df['Year'] <= range_slider_value[1])]
+    bar_df = bar_df.loc[bar_df['FinalJudgement'].isin(dropdown_value)]
 
     # DateTime conversions for area graph
     bar_df1 = bar_df.groupby(['PetitionerCounsel', 'FinalJudgement']).count()[
@@ -584,10 +534,12 @@ def update_graph_bar_ac(n_clicks, dropdown_value, range_slider_value):
     [State('judgement-dropdown', 'value'), State('date-range-slider', 'value')
      ])
 def update_graph_bar_rc(n_clicks, dropdown_value, range_slider_value):
-    # print_details(n_clicks, dropdown_value, range_slider_value)
+
+    bar_df = df[(df['Year'] >= range_slider_value[0]) &
+                (df['Year'] <= range_slider_value[1])]
 
     # Judgement filtering on the basis of selected dropdown values
-    bar_df = df.loc[df['FinalJudgement'].isin(dropdown_value)]
+    bar_df = bar_df.loc[bar_df['FinalJudgement'].isin(dropdown_value)]
 
     # DateTime conversions for area graph
     bar_df1 = bar_df.groupby(['RespondentCounsel', 'FinalJudgement']).count()[
@@ -608,10 +560,23 @@ def update_graph_bar_rc(n_clicks, dropdown_value, range_slider_value):
 # Plaintiff Table
 @app.callback(
     Output("plaintiff-table", "data"),
-    [Input("plaintiff-search-button", "n_clicks")],
-    [State("plaintiff-search", 'value')],
+    [Input("plaintiff-search-button", "n_clicks"),
+     Input('submit_button', 'n_clicks')],
+    [State("plaintiff-search", 'value'), State('judgement-dropdown',
+                                               'value'), State('date-range-slider', 'value')],
 )
-def on_search_click_app(n_clicks, search_value):
+def on_search_click_app(n_clicks, sub_clicks, search_value, dropdown_value, range_slider_value):
+
+    # Filtering by selected dates
+    plaintiff_df = df[(df['Year'] >= range_slider_value[0])
+                      & (df['Year'] <= range_slider_value[1])]
+
+    # Filtering by selected Judgements from dropdown menu
+    plaintiff_df = plaintiff_df.loc[plaintiff_df['FinalJudgement'].isin(
+        dropdown_value)]
+
+    # Creating separate plaintiff_df with just plaintiff column
+    plaintiff_df = pd.DataFrame(plaintiff_df.loc[:, ['Plaintiff']])
 
     search_values = []
 
@@ -620,7 +585,7 @@ def on_search_click_app(n_clicks, search_value):
             search_values.extend([
                 search_value, search_value.lower(), search_value.upper()])
             return plaintiff_df[plaintiff_df['Plaintiff'].str.contains(
-                '|'.join(search_values))].to_dict('records')
+                '|'.join(search_values), na=False)].to_dict('records')
             # return plaintiff_df[plaintiff_df['Plaintiff'].str.contains(
             #     (search_value))].to_dict('records')
 
@@ -630,10 +595,23 @@ def on_search_click_app(n_clicks, search_value):
 
 @app.callback(
     Output("defendant-table", "data"),
-    [Input("defendant-search-button", "n_clicks")],
-    [State("defendant-search", 'value')],
+    [Input("defendant-search-button", "n_clicks"),
+     Input('submit_button', 'n_clicks')],
+    [State("defendant-search", 'value'), State('judgement-dropdown',
+                                               'value'), State('date-range-slider', 'value')],
 )
-def on_search_click_resp(n_clicks, search_value):
+def on_search_click_resp(n_clicks, sub_clicks, search_value, dropdown_value, range_slider_value):
+
+    # Filtering by selected dates
+    defendant_df = df[(df['Year'] >= range_slider_value[0])
+                      & (df['Year'] <= range_slider_value[1])]
+
+    # Filtering by selected Judgements from dropdown menu
+    defendant_df = defendant_df.loc[defendant_df['FinalJudgement'].isin(
+        dropdown_value)]
+
+    # Creating separate defendant_df with just plaintiff column
+    defendant_df = pd.DataFrame(defendant_df.loc[:, ['Defendant']])
 
     search_values = []
 
@@ -642,18 +620,33 @@ def on_search_click_resp(n_clicks, search_value):
             search_values.extend([
                 search_value, search_value.lower(), search_value.upper()])
             return defendant_df[defendant_df['Defendant'].str.contains(
-                '|'.join(search_values))].to_dict('records')
+                '|'.join(search_values), na=False)].to_dict('records')
 
     else:
         return defendant_df[:30].to_dict('records')
 
+# TODO: Fix Petitioner Counsel and Respondent Counsel table searchings(case sensitive)
+
 
 @app.callback(
     Output("petitioner-counsel-table", "data"),
-    [Input("pet-counsel-search-button", "n_clicks")],
-    [State("pet-counsel-search", 'value')],
+    [Input("pet-counsel-search-button", "n_clicks"),
+     Input('submit_button', 'n_clicks')],
+    [State("pet-counsel-search", 'value'), State('judgement-dropdown',
+                                                 'value'), State('date-range-slider', 'value')],
 )
-def on_search_click_ac(n_clicks, search_value):
+def on_search_click_ac(n_clicks, sub_clicks, search_value, dropdown_value, range_slider_value):
+
+    # Filtering by selected dates
+    pet_counsel_df = df[(df['Year'] >= range_slider_value[0])
+                        & (df['Year'] <= range_slider_value[1])]
+
+    # Filtering by selected Judgements from dropdown menu
+    pet_counsel_df = pet_counsel_df.loc[pet_counsel_df['FinalJudgement'].isin(
+        dropdown_value)]
+
+    # Creating separate pet_counsel_df with just plaintiff column
+    pet_counsel_df = pd.DataFrame(pet_counsel_df.loc[:, ['PetitionerCounsel']])
 
     search_values = []
 
@@ -662,7 +655,7 @@ def on_search_click_ac(n_clicks, search_value):
             search_values.extend([
                 search_value, search_value.lower(), search_value.upper()])
             return pet_counsel_df[pet_counsel_df['PetitionerCounsel'].str.contains(
-                '|'.join(search_values))].to_dict('records')
+                '|'.join(search_values), na=False)].to_dict('records')
             # return plaintiff_df[plaintiff_df['Plaintiff'].str.contains(
             #     (search_value))].to_dict('records')
 
@@ -672,18 +665,32 @@ def on_search_click_ac(n_clicks, search_value):
 
 @app.callback(
     Output("defendant-counsel-table", "data"),
-    [Input("resp-counsel-search-button", "n_clicks")],
-    [State("resp-counsel-search", 'value')],
+    [Input("resp-counsel-search-button", "n_clicks"),
+     Input('submit_button', 'n_clicks')],
+    [State("resp-counsel-search", 'value'), State('judgement-dropdown',
+                                                  'value'), State('date-range-slider', 'value')],
 )
-def on_search_click_rc(n_clicks, search_value):
+def on_search_click_rc(n_clicks, sub_clicks, search_value, dropdown_value, range_slider_value):
+
+    # Filtering by selected dates
+    resp_counsel_df = df[(df['Year'] >= range_slider_value[0]) & (
+        df['Year'] <= range_slider_value[1])]
+
+    # Filtering by selected Judgements from dropdown menu
+    resp_counsel_df = resp_counsel_df.loc[resp_counsel_df['FinalJudgement'].isin(
+        dropdown_value)]
+
+    # Creating separate resp_counsel_df with just plaintiff column
+    resp_counsel_df = pd.DataFrame(
+        resp_counsel_df.loc[:, ['RespondentCounsel']])
 
     search_values = []
     if n_clicks:
         if (search_value != None or search_value != '' or search_value != ' '):
             search_values.extend([
                 search_value, search_value.lower(), search_value.upper()])
-            return resp_counsel_df[resp_counsel_df['Defendant'].str.contains(
-                '|'.join(search_values))].to_dict('records')
+            return resp_counsel_df[resp_counsel_df['RespondentCounsel'].str.contains(
+                '|'.join(search_values), na=False)].to_dict('records')
             # TODO: No data found if return is blank/none
 
     else:
