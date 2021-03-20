@@ -151,6 +151,7 @@ controls = dbc.FormGroup(
         ),
         # html.Br(),
 
+        # MAIN TAB
         html.P('Plaintiff Search',
                style={
                    'textAlign': 'center'
@@ -194,6 +195,7 @@ controls = dbc.FormGroup(
         ),
         html.Br(),
 
+        # COUSNEL TAB
         html.P('Petitioner Counsel Search',
                style={
                    'textAlign': 'center'
@@ -224,6 +226,7 @@ controls = dbc.FormGroup(
         ]
         ),
         html.Br(),
+
 
         dbc.Button(
             id='submit_button',
@@ -262,7 +265,7 @@ content_search_row = dbc.Row([
         ),
         dbc.Input(
             id='keyword-search',
-            placeholder='Search...'),
+            placeholder='Search for Keywords...'),
     ],
         style={'padding': '5px 25px 25px 25px'}
     ),
@@ -456,20 +459,20 @@ content_fifth_row = dbc.Row(
                     'selector': '.dash-spreadsheet td div',
                     'rule': '''
                     line-height: 15px;
-                    max-height: 30px; min-height: 30px; height: 30px;
+                    max-height: 60px; min-height: 60px; height: 60px;
                    
                     display: block;
-                    overflow-y: hidden;
+                    overflow-y: auto;
                 '''
                 }],
 
-                tooltip_data=[
-                    {
-                        column: {'value': str(value), 'type': 'markdown'}
-                        for column, value in row.items()
-                    } for row in df[['CaseFile']][:50].to_dict('records')
-                ],
-                tooltip_duration=None,
+                # tooltip_data=[
+                #     {
+                #         column: {'value': str(value), 'type': 'markdown'}
+                #         for column, value in row.items()
+                #     } for row in df[['CaseFile']][:50].to_dict('records')
+                # ],
+                # tooltip_duration=None,
 
                 style_data={
                     'whiteSpace': 'normal',
@@ -501,7 +504,7 @@ content = html.Div(
         content_first_row,
         content_second_row,
         content_third_row,
-        # content_fourth_row,
+        # content_fourth_row, # Contatins Bar Graphs, hidden, replace with heatmap
         content_fifth_row
     ],
     style=CONTENT_STYLE
@@ -793,7 +796,7 @@ def on_search_click_rc(n_clicks, sub_clicks, search_value, dropdown_value, range
     [State("keyword-search", 'value'), State('judgement-dropdown',
                                              'value'), State('date-range-slider', 'value')],
 )
-def on_search_click_case(n_clicks, sub_clicks, search_value, dropdown_value, range_slider_value):
+def on_search_click_case(n_clicks, search_value, dropdown_value, range_slider_value):
 
     # Filtering by selected dates
     case_df = df[(df['Year'] >= range_slider_value[0])
@@ -808,8 +811,8 @@ def on_search_click_case(n_clicks, sub_clicks, search_value, dropdown_value, ran
 
     search_values = []
 
-    # if n_clicks:
-    if (n_clicks != None) | (sub_clicks != None):
+    if n_clicks:
+        # if (n_clicks != None) | (sub_clicks != None):
         if (search_value != None or search_value != '' or search_value != ' '):
             search_values.extend([
                 search_value, search_value.lower(), search_value.upper()])
