@@ -503,7 +503,7 @@ content = html.Div(
         content_search_row,
         content_first_row,
         content_second_row,
-        content_third_row,
+        # content_third_row,
         # content_fourth_row, # Contatins Bar Graphs, hidden, replace with heatmap
         content_fifth_row
     ],
