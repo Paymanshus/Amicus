@@ -152,8 +152,6 @@ area_df = area_df.reset_index()
 area_df.month_year = (pd.to_datetime(area_df.month_year))
 area_df = area_df.sort_values(by='month_year')
 
-# TODO: Change to data indicing rather than df duplication, delete plaintiff_df, defendant_df, etc. and replace with df[['Plaintiff']]
-# directly once scrolling issues are sorted out
 
 # Date Processing
 df = date_time_extractor(df, 'DateFiled')
@@ -283,7 +281,6 @@ sidebar = html.Div(
     style=SIDEBAR_STYLE,
 )
 
-# TODO: Add keyword search through CaseFiles
 
 content_search_row = dbc.Row([
     html.Div([
@@ -349,13 +346,13 @@ content_counsel_row = dbc.Row([
                 '''
                  }],
 
-            tooltip_data=[
-                {
-                    column: {'value': str(value), 'type': 'markdown'}
-                    for column, value in row.items()
-                } for row in df[['PetitionerCounsel']][:50].to_dict('records')
-            ],
-            tooltip_duration=None,
+            # tooltip_data=[
+            #     {
+            #         column: {'value': str(value), 'type': 'markdown'}
+            #         for column, value in row.items()
+            #     } for row in df[['PetitionerCounsel']][:50].to_dict('records')
+            # ],
+            # tooltip_duration=None,
 
             style_data={
                 'whiteSpace': 'normal',
@@ -393,13 +390,13 @@ content_counsel_row = dbc.Row([
                 '''
                  }],
 
-            tooltip_data=[
-                {
-                    column: {'value': str(value), 'type': 'markdown'}
-                    for column, value in row.items()
-                } for row in df[['RespondentCounsel']][:50].to_dict('records')
-            ],
-            tooltip_duration=None,
+            # tooltip_data=[
+            #     {
+            #         column: {'value': str(value), 'type': 'markdown'}
+            #         for column, value in row.items()
+            #     } for row in df[['RespondentCounsel']][:50].to_dict('records')
+            # ],
+            # tooltip_duration=None,
 
             style_data={
                 'whiteSpace': 'normal',
@@ -545,13 +542,16 @@ content = html.Div(
         html.Hr(),
         content_search_row,
         html.H3('Visualisations'),
-        # html.H5('Donut Graph')
+        html.H5('Case Count per Judgement Type', style=TEXT_STYLE),
         content_donut_row,
+        html.Br(),
+        html.H5('Judgement of Cases over Time', style=TEXT_STYLE),
         content_line_row,
         html.Br(),
-        html.H5('Heatmaps'),
+        html.H5('Strike Rate Heatmaps', style=TEXT_STYLE),
         content_heatmap_row,
         html.Br(),
+        html.H5('Data Tables', style=TEXT_STYLE),
         content_counsel_row,  # Contatins Bar Graphs, hidden, replace with heatmap
         html.Br(),
         content_table_row
@@ -672,7 +672,6 @@ def update_graph_line(dropdown_value, range_slider_value):
     fig.update_yaxes(title_text='No. of Cases')
 
     return fig
-# TODO: Change color scheme of graphs (consistent color scheme)
 
 # Stacked Bar Graph
 # Petitioner Counsel
@@ -761,7 +760,8 @@ def update_ac_heatmap(dropdown_value, range_slider_value):
                     # autosize=True
                     )
 
-    fig.update_layout(margin=dict(t=20, b=20, l=0, r=0))
+    fig.update_layout(margin=dict(t=20, b=20, l=0, r=0),
+                      autosize=True)
 
     fig.update_xaxes(showticklabels=False)
     fig.update_yaxes(showticklabels=True)
@@ -945,7 +945,6 @@ def on_search_click_rc(n_clicks, search_value, dropdown_value, range_slider_valu
                 search_value, search_value.lower(), search_value.upper()])
             return resp_counsel_df[resp_counsel_df['RespondentCounsel'].str.contains(
                 '|'.join(search_values), na=False)].to_dict('records')
-            # TODO: No data found if return is blank/none
 
     else:
         return resp_counsel_df[:30].to_dict('records')

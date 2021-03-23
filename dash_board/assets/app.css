@@ -20,6 +20,7 @@ div::-webkit-scrollbar-thumb {
 
 .row {
     max-height: 80%;
+    margin: 15px 0px;
 }
 
 .search-header {
