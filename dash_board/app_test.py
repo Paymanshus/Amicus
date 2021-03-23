@@ -143,7 +143,7 @@ tabs = dcc.Tabs(id='tabs', value='tab-1', children=[
 ])
 
 
-controls = dcc.Html(id='tabs-content')
+controls = html.Div(id='tabs-content')
 
 
 sidebar = html.Div(

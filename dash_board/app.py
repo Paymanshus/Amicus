@@ -45,6 +45,10 @@ CARD_TEXT_STYLE = {
 df = pd.read_csv(
     r"D:\aaProjectsStuff\Amicus\Dashboard\newpartidk.csv")
 
+cdf = pd.read_csv(
+    r"D:\aaProjectsStuff\Amicus\Dashboard\dummy.csv"
+)
+
 
 # -------------------------------------Functions-------------------------------------
 # def get_xy_from_count():
@@ -132,6 +136,7 @@ area_df = area_df.sort_values(by='month_year')
 
 # Date Processing
 df = date_time_extractor(df, 'DateFiled')
+cdf = date_time_extractor(cdf, 'DateFiled')
 
 
 # -------------------------------------Layout-------------------------------------
@@ -433,13 +438,24 @@ content_third_row = dbc.Row([
     ),
 ])
 
+# bar_content_fourth_row = dbc.Row(
+#     [
+#         dbc.Col(
+#             dcc.Graph(id='ac-bar-graph'), md=6
+#         ),
+#         dbc.Col(
+#             dcc.Graph(id='rc-bar-graph'), md=6
+#         )
+#     ]
+# )
+
 content_fourth_row = dbc.Row(
     [
         dbc.Col(
-            dcc.Graph(id='ac-bar-graph'), md=6
+            dcc.Graph(id='ac-heatmap'), md=6
         ),
         dbc.Col(
-            dcc.Graph(id='rc-bar-graph'), md=6
+            dcc.Graph(id='rc-heatmap'), md=6
         )
     ]
 )
@@ -503,8 +519,8 @@ content = html.Div(
         content_search_row,
         content_first_row,
         content_second_row,
-        # content_third_row,
-        # content_fourth_row, # Contatins Bar Graphs, hidden, replace with heatmap
+        content_third_row,
+        content_fourth_row,  # Contatins Bar Graphs, hidden, replace with heatmap
         content_fifth_row
     ],
     style=CONTENT_STYLE
@@ -539,7 +555,7 @@ def update_graph_donut(n_clicks, dropdown_value, range_slider_value):
     # TODO: Add Legend
     fig_donut = px.pie(data_frame=jd_count.loc[jd_count['Judgement'].isin(dropdown_value)], values='No. of Cases',
                        hover_name='Judgement', hole=0.6,
-                       color_discrete_sequence=[px.colors.qualitative.Plotly[1], px.colors.qualitative.Plotly[2], px.colors.qualitative.Plotly[0]])
+                       color_discrete_sequence=['#f6511d', '#00a6ed', '#ffb400'])
 
     fig_donut.update_layout(transition_duration=1000)
     fig_donut.update_layout(margin=dict(t=60, b=60, l=60, r=60))
@@ -555,7 +571,6 @@ def update_graph_donut(n_clicks, dropdown_value, range_slider_value):
     [State('judgement-dropdown', 'value'), State('date-range-slider', 'value')
      ])
 def update_graph_line(n_clicks, dropdown_value, range_slider_value):
-    # print_details(n_clicks, dropdown_value, range_slider_value)
 
     # Judgement filtering on the basis of selected dropdown values
     area_df = df.loc[df['FinalJudgement'].isin(dropdown_value)]
@@ -571,7 +586,8 @@ def update_graph_line(n_clicks, dropdown_value, range_slider_value):
     area_df = area_df.sort_values(by='month_year')
 
     fig = px.area(area_df, x='month_year', y='Judge',
-                  color='FinalJudgement', labels={'FinalJudgement': 'Judgement'})
+                  color='FinalJudgement', labels={'FinalJudgement': 'Judgement'},
+                  color_discrete_sequence=['#00a6ed', '#f6511d', '#ffb400'])
 
     fig.update_layout(transition_duration=500)
     fig.update_xaxes(title_text='Date')
@@ -583,60 +599,127 @@ def update_graph_line(n_clicks, dropdown_value, range_slider_value):
 # Petitioner Counsel
 
 
+# @app.callback(
+#     Output('ac-bar-graph', 'figure'),
+#     [Input('submit_button', 'n_clicks')],
+#     [State('judgement-dropdown', 'value'), State('date-range-slider', 'value')
+#      ])
+# def update_graph_bar_ac(n_clicks, dropdown_value, range_slider_value):
+
+#     # Judgement filtering on the basis of selected dropdown values
+#     bar_df = df[(df['Year'] >= range_slider_value[0]) &
+#                 (df['Year'] <= range_slider_value[1])]
+#     bar_df = bar_df.loc[bar_df['FinalJudgement'].isin(dropdown_value)]
+
+#     # DateTime conversions for area graph
+#     bar_df1 = bar_df.groupby(['PetitionerCounsel', 'FinalJudgement']).count()[
+#         'Judge'].reset_index()
+#     bar_df2 = bar_df1.groupby(['PetitionerCounsel']).sum().reset_index()
+#     final = pd.merge(bar_df1, bar_df2, on=['PetitionerCounsel'])
+#     final['Percent'] = (final['Judge_x'] / final['Judge_y']) * 100
+
+#     fig = px.bar(final[:50], y='Percent',
+#                  x='PetitionerCounsel', color='FinalJudgement')
+#     fig.update_layout(transition_duration=500)
+#     fig.update_xaxes(showticklabels=False)
+#     # fig.update_yaxes()
+
+#     return fig
+
+
+# # Respondent Counsel
+# @app.callback(
+#     Output('rc-bar-graph', 'figure'),
+#     [Input('submit_button', 'n_clicks')],
+#     [State('judgement-dropdown', 'value'), State('date-range-slider', 'value')
+#      ])
+# def update_graph_bar_rc(n_clicks, dropdown_value, range_slider_value):
+
+#     bar_df = df[(df['Year'] >= range_slider_value[0]) &
+#                 (df['Year'] <= range_slider_value[1])]
+
+#     # Judgement filtering on the basis of selected dropdown values
+#     bar_df = bar_df.loc[bar_df['FinalJudgement'].isin(dropdown_value)]
+
+#     # DateTime conversions for area graph
+#     bar_df1 = bar_df.groupby(['RespondentCounsel', 'FinalJudgement']).count()[
+#         'Judge'].reset_index()
+#     bar_df2 = bar_df1.groupby(['RespondentCounsel']).sum().reset_index()
+#     final = pd.merge(bar_df1, bar_df2, on=['RespondentCounsel'])
+#     final['Percent'] = (final['Judge_x'] / final['Judge_y']) * 100
+
+#     fig = px.bar(final[:50], y='Percent',
+#                  x='RespondentCounsel', color='FinalJudgement')
+#     fig.update_layout(transition_duration=500)
+#     fig.update_xaxes(showticklabels=False)
+#     # fig.update_yaxes()
+
+#     return fig
+
+
+# Heatmaps
+# Petitioner Counsel
 @app.callback(
-    Output('ac-bar-graph', 'figure'),
+    Output('ac-heatmap', 'figure'),
     [Input('submit_button', 'n_clicks')],
     [State('judgement-dropdown', 'value'), State('date-range-slider', 'value')
      ])
-def update_graph_bar_ac(n_clicks, dropdown_value, range_slider_value):
+def update_ac_heatmap(n_clicks, dropdown_value, range_slider_value):
 
     # Judgement filtering on the basis of selected dropdown values
-    bar_df = df[(df['Year'] >= range_slider_value[0]) &
-                (df['Year'] <= range_slider_value[1])]
-    bar_df = bar_df.loc[bar_df['FinalJudgement'].isin(dropdown_value)]
+    heat_df = cdf[(cdf['Year'] >= range_slider_value[0]) &
+                  (cdf['Year'] <= range_slider_value[1])]
+    heat_df = heat_df.loc[heat_df['FinalJudgement'].isin(dropdown_value)]
 
-    # DateTime conversions for area graph
-    bar_df1 = bar_df.groupby(['PetitionerCounsel', 'FinalJudgement']).count()[
-        'Judge'].reset_index()
-    bar_df2 = bar_df1.groupby(['PetitionerCounsel']).sum().reset_index()
-    final = pd.merge(bar_df1, bar_df2, on=['PetitionerCounsel'])
-    final['Percent'] = (final['Judge_x'] / final['Judge_y']) * 100
+    # Data Processing and creation of heatmap
+    dat = heat_df.groupby(['PetitionerCounsel', 'Judge']).count()[
+        'FinalJudgement'].reset_index()
+    data1 = dat.pivot(index='PetitionerCounsel', columns='Judge')
+    data1.columns = data1.columns.droplevel(0)
 
-    fig = px.bar(final[:50], y='Percent',
-                 x='PetitionerCounsel', color='FinalJudgement')
-    fig.update_layout(transition_duration=500)
+    fig = px.imshow(data1, labels=dict(x="Petitioner Counsel", y="Judge", color="Efficacy")                    # ,x = data1.index.tolist(), y = data1.columns.tolist()
+                    # , width=1000, height=1000
+                    )
+
+    fig.update_layout(margin=dict(t=20, b=20, l=5, r=5))
+
     fig.update_xaxes(showticklabels=False)
-    # fig.update_yaxes()
+    fig.update_yaxes(showticklabels=False)
+
+    fig.update_layout(transition_duration=500)
 
     return fig
 
 
 # Respondent Counsel
 @app.callback(
-    Output('rc-bar-graph', 'figure'),
+    Output('rc-heatmap', 'figure'),
     [Input('submit_button', 'n_clicks')],
     [State('judgement-dropdown', 'value'), State('date-range-slider', 'value')
      ])
-def update_graph_bar_rc(n_clicks, dropdown_value, range_slider_value):
-
-    bar_df = df[(df['Year'] >= range_slider_value[0]) &
-                (df['Year'] <= range_slider_value[1])]
+def update_rc_heatmap(n_clicks, dropdown_value, range_slider_value):
 
     # Judgement filtering on the basis of selected dropdown values
-    bar_df = bar_df.loc[bar_df['FinalJudgement'].isin(dropdown_value)]
+    heat_df = cdf[(cdf['Year'] >= range_slider_value[0]) &
+                  (cdf['Year'] <= range_slider_value[1])]
+    heat_df = heat_df.loc[heat_df['FinalJudgement'].isin(dropdown_value)]
 
-    # DateTime conversions for area graph
-    bar_df1 = bar_df.groupby(['RespondentCounsel', 'FinalJudgement']).count()[
-        'Judge'].reset_index()
-    bar_df2 = bar_df1.groupby(['RespondentCounsel']).sum().reset_index()
-    final = pd.merge(bar_df1, bar_df2, on=['RespondentCounsel'])
-    final['Percent'] = (final['Judge_x'] / final['Judge_y']) * 100
+    # Data Processing and creation of heatmap
+    dat = heat_df.groupby(['RespondentCounsel', 'Judge']).count()[
+        'FinalJudgement'].reset_index()
+    data1 = dat.pivot(index='RespondentCounsel', columns='Judge')
+    data1.columns = data1.columns.droplevel(0)
 
-    fig = px.bar(final[:50], y='Percent',
-                 x='RespondentCounsel', color='FinalJudgement')
-    fig.update_layout(transition_duration=500)
+    fig = px.imshow(data1, labels=dict(x="Respondent Counsel", y="Judge", color="Inferno")                    # ,x = data1.index.tolist(), y = data1.columns.tolist()
+                    # , width=1000, height=1000
+                    )
+
+    fig.update_layout(margin=dict(t=20, b=20, l=5, r=5))
+
     fig.update_xaxes(showticklabels=False)
-    # fig.update_yaxes()
+    fig.update_yaxes(showticklabels=False)
+
+    fig.update_layout(transition_duration=500)
 
     return fig
 
@@ -725,8 +808,8 @@ def on_search_click_resp(n_clicks, sub_clicks, search_value, dropdown_value, ran
 def on_search_click_ac(n_clicks, sub_clicks, search_value, dropdown_value, range_slider_value):
 
     # Filtering by selected dates
-    pet_counsel_df = df[(df['Year'] >= range_slider_value[0])
-                        & (df['Year'] <= range_slider_value[1])]
+    pet_counsel_df = cdf[(cdf['Year'] >= range_slider_value[0])
+                         & (ccdf['Year'] <= range_slider_value[1])]
 
     # Filtering by selected Judgements from dropdown menu
     pet_counsel_df = pet_counsel_df.loc[pet_counsel_df['FinalJudgement'].isin(
@@ -761,8 +844,8 @@ def on_search_click_ac(n_clicks, sub_clicks, search_value, dropdown_value, range
 def on_search_click_rc(n_clicks, sub_clicks, search_value, dropdown_value, range_slider_value):
 
     # Filtering by selected dates
-    resp_counsel_df = df[(df['Year'] >= range_slider_value[0]) & (
-        df['Year'] <= range_slider_value[1])]
+    resp_counsel_df = cdf[(cdf['Year'] >= range_slider_value[0]) & (
+        cdf['Year'] <= range_slider_value[1])]
 
     # Filtering by selected Judgements from dropdown menu
     resp_counsel_df = resp_counsel_df.loc[resp_counsel_df['FinalJudgement'].isin(
