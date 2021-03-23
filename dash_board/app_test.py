@@ -440,109 +440,111 @@ def render_sidebar_layout(tab):
 
     # Home
     if tab == 'tab-1':
-        return dbc.FormGroup([
-            html.P('Range Slider', style={
-                'textAlign': 'center'
-            }),
-            dcc.RangeSlider(
-                id='date-range-slider',
-                min=2015,
-                max=2021,
-                step=1,
-                marks={2015: '2015', 2018: '2018',  2021: '2021'},
-                value=[2015, 2021],
-                pushable=1
-            ),
-            # html.Br(),
-
-            # MAIN TAB
-            html.P('Plaintiff Search',
-                   style={
-                       'textAlign': 'center'
-                   }),
-            dbc.InputGroup([
-
-                dbc.InputGroupAddon(
-                    dbc.Button("Search", id="plaintiff-search-button")
+        return html.Div([
+            dbc.FormGroup([
+                html.P('Range Slider', style={
+                    'textAlign': 'center'
+                }),
+                dcc.RangeSlider(
+                    id='date-range-slider',
+                    min=2015,
+                    max=2021,
+                    step=1,
+                    marks={2015: '2015', 2018: '2018',  2021: '2021'},
+                    value=[2015, 2021],
+                    pushable=1
                 ),
-                dbc.Input(
-                    id='plaintiff-search',
-                    placeholder='Search for Plaintiff...'),
-            ]
-            ),
+                # html.Br(),
 
-            html.P('Defendant Search',
-                   style={
-                       'textAlign': 'center'
-                   }),
-            dbc.InputGroup([
+                # MAIN TAB
+                html.P('Plaintiff Search',
+                       style={
+                           'textAlign': 'center'
+                       }),
+                dbc.InputGroup([
 
-                dbc.InputGroupAddon(
-                    dbc.Button("Search", id="defendant-search-button")
+                    dbc.InputGroupAddon(
+                        dbc.Button("Search", id="plaintiff-search-button")
+                    ),
+                    dbc.Input(
+                        id='plaintiff-search',
+                        placeholder='Search for Plaintiff...'),
+                ]
                 ),
-                dbc.Input(
-                    id='defendant-search',
-                    placeholder='Search for Defendant...'),
-            ]
-            ),
-            html.Br(),
 
-            html.P('Type of Judgement', style={
-                'textAlign': 'center'
-            }),
-            dcc.Dropdown(
-                id='judgement-dropdown',
-                options=[{'label': i, 'value': i}
-                         for i in jd_unique],
-                value=jd_unique.tolist(),
-                multi=True
-            ),
-            html.Br(),
+                html.P('Defendant Search',
+                       style={
+                           'textAlign': 'center'
+                       }),
+                dbc.InputGroup([
 
-            # COUSNEL TAB
-            html.P('Petitioner Counsel Search',
-                   style={
-                       'textAlign': 'center'
-                   }),
-            dbc.InputGroup([
-
-                dbc.InputGroupAddon(
-                    dbc.Button(
-                        "Search", id="pet-counsel-search-button")
+                    dbc.InputGroupAddon(
+                        dbc.Button("Search", id="defendant-search-button")
+                    ),
+                    dbc.Input(
+                        id='defendant-search',
+                        placeholder='Search for Defendant...'),
+                ]
                 ),
-                dbc.Input(
-                    id='pet-counsel-search',
-                    placeholder='Search...'),
-            ]
-            ),
+                html.Br(),
 
-            html.P('Respondent Counsel Search',
-                   style={
-                       'textAlign': 'center'
-                   }),
-            dbc.InputGroup([
-
-                dbc.InputGroupAddon(
-                    dbc.Button(
-                        "Search", id="resp-counsel-search-button")
+                html.P('Type of Judgement', style={
+                    'textAlign': 'center'
+                }),
+                dcc.Dropdown(
+                    id='judgement-dropdown',
+                    options=[{'label': i, 'value': i}
+                             for i in jd_unique],
+                    value=jd_unique.tolist(),
+                    multi=True
                 ),
-                dbc.Input(
-                    id='resp-counsel-search',
-                    placeholder='Search...'),
+                html.Br(),
+
+                # COUSNEL TAB
+                html.P('Petitioner Counsel Search',
+                       style={
+                           'textAlign': 'center'
+                       }),
+                dbc.InputGroup([
+
+                    dbc.InputGroupAddon(
+                        dbc.Button(
+                            "Search", id="pet-counsel-search-button")
+                    ),
+                    dbc.Input(
+                        id='pet-counsel-search',
+                        placeholder='Search...'),
+                ]
+                ),
+
+                html.P('Respondent Counsel Search',
+                       style={
+                           'textAlign': 'center'
+                       }),
+                dbc.InputGroup([
+
+                    dbc.InputGroupAddon(
+                        dbc.Button(
+                            "Search", id="resp-counsel-search-button")
+                    ),
+                    dbc.Input(
+                        id='resp-counsel-search',
+                        placeholder='Search...'),
+                ]
+                ),
+                html.Br(),
+
+
+                dbc.Button(
+                    id='submit_button',
+                    n_clicks=0,
+                    children='Submit',
+                    color='primary',
+                    block=True
+                ),
             ]
-            ),
-            html.Br(),
-
-
-            dbc.Button(
-                id='submit_button',
-                n_clicks=0,
-                children='Submit',
-                color='primary',
-                block=True
-            ),
-        ]
-        )
+            )
+        ])
 
     # Counsel
     elif tab == 'tab-2':

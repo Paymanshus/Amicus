@@ -710,7 +710,7 @@ def update_rc_heatmap(n_clicks, dropdown_value, range_slider_value):
     data1 = dat.pivot(index='RespondentCounsel', columns='Judge')
     data1.columns = data1.columns.droplevel(0)
 
-    fig = px.imshow(data1, labels=dict(x="Respondent Counsel", y="Judge", color="Inferno")                    # ,x = data1.index.tolist(), y = data1.columns.tolist()
+    fig = px.imshow(data1, labels=dict(x="Respondent Counsel", y="Judge", color="Efficacy")                    # ,x = data1.index.tolist(), y = data1.columns.tolist()
                     # , width=1000, height=1000
                     )
 
