@@ -11,6 +11,8 @@ from dash.dependencies import Input, Output, State
 
 import plotly.express as px
 
+# from apps import cases, counsel
+
 
 # -------------------------------------Styles-------------------------------------
 # the style arguments for the sidebar.
@@ -36,11 +38,21 @@ TEXT_STYLE = {
     # 'color': '#191970'
 }
 
+CELL_STYLE = {
+    'padding': '5px',
+    'whiteSpace': 'normal',
+    'height': 'auto',
+    'minWidth': '180px', 'width': '180px', 'maxWidth': '180px',
+                'font-family': 'Helvetica'
+}
+
 CARD_TEXT_STYLE = {
     'textAlign': 'center',
     # 'color': '#0074D9',
     'padding': '5px 0px'
 }
+'#f6511d', '#00a6ed', '#ffb400'
+colors = {'red': '#f6511d', 'blue': '#00a6ed', 'yellow': '#ffb400'}
 
 df = pd.read_csv(
     r"D:\aaProjectsStuff\Amicus\Dashboard\newpartidk.csv")
@@ -96,6 +108,15 @@ def date_time_extractor(df, date_col, date_format=None, year=1, quarter=0, month
     # df.drop(['TimeStamp'], inplace=True)
 
     return df
+
+
+def customLegend(fig, nameSwap):
+    for i, dat in enumerate(fig.data):
+        for elem in dat:
+            if elem == 'name':
+                print(fig.data[i].name)
+                fig.data[i].name = nameSwap[fig.data[i].name]
+    return(fig)
 
 
 print(datetime.datetime.now())
@@ -154,7 +175,7 @@ controls = dbc.FormGroup(
             value=[2015, 2021],
             pushable=1
         ),
-        # html.Br(),
+        html.Br(),
 
         # MAIN TAB
         html.P('Plaintiff Search',
@@ -168,7 +189,7 @@ controls = dbc.FormGroup(
             ),
             dbc.Input(
                 id='plaintiff-search',
-                placeholder='Search for Plaintiff...'),
+                placeholder='Search...'),
         ]
         ),
 
@@ -183,7 +204,7 @@ controls = dbc.FormGroup(
             ),
             dbc.Input(
                 id='defendant-search',
-                placeholder='Search for Defendant...'),
+                placeholder='Search...'),
         ]
         ),
         html.Br(),
@@ -230,15 +251,24 @@ controls = dbc.FormGroup(
                 placeholder='Search...'),
         ]
         ),
-        html.Br(),
+        # html.Br(),
 
+
+        # dbc.Button(
+        #     id='submit_button',
+        #     n_clicks=0,
+        #     children='Submit',
+        #     color='primary',
+        #     block=True
+        # ),
 
         dbc.Button(
-            id='submit_button',
+            id='switch-button',
             n_clicks=0,
-            children='Submit',
+            children='View Cases',
             color='primary',
-            block=True
+            block=True,
+            href='/apps/cases'
         ),
     ]
 )
@@ -276,61 +306,19 @@ content_search_row = dbc.Row([
     ),
 ])
 
-content_first_row = dbc.Row([
-    dbc.Col(
-        # dbc.Table.from_dataframe(
-        #     plaintiff_df, striped=True, bordered=True, hover=True, responsive='sm'),
+content_donut_row = dbc.Row([
 
-        dt.DataTable(
-            id='plaintiff-table',
-            columns=[{"name": "Plaintiff", "id": "Plaintiff"}],
-            data=df[['Plaintiff']][:50].to_dict('records'),
-            page_action='none',
-            fixed_rows={'headers': True},
-
-            style_as_list_view=True,
-            style_cell={'padding': '5px'},
-            style_header={
-                'backgroundColor': 'white',
-                'fontWeight': 'bold'
-            },
-            style_cell_conditional=[{'textAlign': 'left'}],
-            style_table={'height': '426px', 'overflow': 'hidden'}
-        ),
-        md=4
-    ),
-    dbc.Col(
-
-        dt.DataTable(
-            id='defendant-table',
-            # columns=[{"name": i, "id": i} for i in defendant_df.columns],
-            columns=[{"name": "Defendant", "id": "Defendant"}],
-            data=df[['Defendant']][:50].to_dict('records'),
-            page_action='none',
-            fixed_rows={'headers': True},
-
-            style_as_list_view=True,
-            style_cell={'padding': '5px'},
-            style_header={
-                'backgroundColor': 'white',
-                'fontWeight': 'bold'
-            },
-            style_cell_conditional=[{'textAlign': 'left'}],
-            style_table={'height': '426px', 'overflow': 'hidden'}
-        ),
-        md=4
-    ),
     dbc.Col(
         dcc.Graph(
             id='donut-graph',
             # figure=fig_donut,
         ),
-        md=4
+        md=12
     ),
 
 ])
 
-content_second_row = dbc.Row(
+content_line_row = dbc.Row(
     [
         dbc.Col(
             dcc.Graph(id='line-graph'), md=12
@@ -339,12 +327,13 @@ content_second_row = dbc.Row(
     ]
 )
 
-content_third_row = dbc.Row([
+content_counsel_row = dbc.Row([
     dbc.Col(
         dt.DataTable(
             id='petitioner-counsel-table',
             # columns=[{"name": i, "id": i} for i in pet_counsel_df.columns],
-            columns=[{"name": "Petitioner Counsel", "id": "PetitionerCounsel"}],
+            columns=[{"name": "Top Petitioner Counsel",
+                      "id": "PetitionerCounsel"}],
             data=df[["PetitionerCounsel"]][:50].dropna().to_dict('records'),
             page_action='none',
             fixed_rows={'headers': True},
@@ -373,12 +362,7 @@ content_third_row = dbc.Row([
                 'height': 'auto'
             },
             style_as_list_view=True,
-            style_cell={
-                'padding': '5px',
-                'whiteSpace': 'normal',
-                'height': 'auto',
-                'minWidth': '180px', 'width': '180px', 'maxWidth': '180px',
-            },
+            style_cell=CELL_STYLE,
             style_header={
                 'backgroundColor': 'white',
                 'fontWeight': 'bold'
@@ -392,7 +376,8 @@ content_third_row = dbc.Row([
         dt.DataTable(
             id='defendant-counsel-table',
             # columns=[{"name": i, "id": i} for i in resp_counsel_df.columns],
-            columns=[{"name": "Respondent Counsel", "id": "RespondentCounsel"}],
+            columns=[{"name": "Top Respondent Counsel",
+                      "id": "RespondentCounsel"}],
             data=df[['RespondentCounsel']][:50].dropna().to_dict('records'),
             page_action='none',
             fixed_rows={'headers': True},
@@ -421,12 +406,7 @@ content_third_row = dbc.Row([
                 'height': 'auto'
             },
             style_as_list_view=True,
-            style_cell={
-                'padding': '5px',
-                'whiteSpace': 'normal',
-                'height': 'auto',
-                'minWidth': '180px', 'width': '180px', 'maxWidth': '360px',
-            },
+            style_cell=CELL_STYLE,
             style_header={
                 'backgroundColor': 'white',
                 'fontWeight': 'bold'
@@ -449,18 +429,64 @@ content_third_row = dbc.Row([
 #     ]
 # )
 
-content_fourth_row = dbc.Row(
-    [
-        dbc.Col(
-            dcc.Graph(id='ac-heatmap'), md=6
-        ),
-        dbc.Col(
-            dcc.Graph(id='rc-heatmap'), md=6
-        )
-    ]
-)
+content_heatmap_row = html.Div([
+    dbc.Row(
+        dcc.Graph(id='ac-heatmap'),  # md=12
+    ),
+    dbc.Row(
+        dcc.Graph(id='rc-heatmap'),  # md=12
+    )
+])
 
-content_fifth_row = dbc.Row(
+
+content_table_row = dbc.Row([
+    dbc.Col(
+        # dbc.Table.from_dataframe(
+        #     plaintiff_df, striped=True, bordered=True, hover=True, responsive='sm'),
+
+        dt.DataTable(
+            id='plaintiff-table',
+            columns=[{"name": "Top Plaintiff", "id": "Plaintiff"}],
+            data=df[['Plaintiff']][:50].to_dict('records'),
+            page_action='none',
+            fixed_rows={'headers': True},
+
+            style_as_list_view=True,
+            style_cell=CELL_STYLE,
+            style_header={
+                'backgroundColor': 'white',
+                'fontWeight': 'bold'
+            },
+            style_cell_conditional=[{'textAlign': 'left'}],
+            style_table={'height': '426px', 'overflow': 'hidden'}
+        ),
+        md=6
+    ),
+    dbc.Col(
+
+        dt.DataTable(
+            id='defendant-table',
+            # columns=[{"name": i, "id": i} for i in defendant_df.columns],
+            columns=[{"name": "Top Defendant", "id": "Defendant"}],
+            data=df[['Defendant']][:50].to_dict('records'),
+            page_action='none',
+            fixed_rows={'headers': True},
+
+            style_as_list_view=True,
+            style_cell=CELL_STYLE,
+            style_header={
+                'backgroundColor': 'white',
+                'fontWeight': 'bold'
+            },
+            style_cell_conditional=[{'textAlign': 'left'}],
+            style_table={'height': '426px', 'overflow': 'hidden'}
+        ),
+        md=6
+    ),
+])
+
+
+content_case_row = dbc.Row(
     [
         dbc.Col(
             dt.DataTable(
@@ -500,6 +526,7 @@ content_fifth_row = dbc.Row(
                     'whiteSpace': 'normal',
                     'height': 'auto',
                     'minWidth': '180px', 'width': '180px', 'maxWidth': '360px',
+                    'font-family': 'Helvetica'
                 },
                 style_header={
                     'backgroundColor': 'white',
@@ -517,19 +544,27 @@ content = html.Div(
         html.H2('Amicus.ai', style=TEXT_STYLE),
         html.Hr(),
         content_search_row,
-        content_first_row,
-        content_second_row,
-        content_third_row,
-        content_fourth_row,  # Contatins Bar Graphs, hidden, replace with heatmap
-        content_fifth_row
+        html.H3('Visualisations'),
+        # html.H5('Donut Graph')
+        content_donut_row,
+        content_line_row,
+        html.Br(),
+        html.H5('Heatmaps'),
+        content_heatmap_row,
+        html.Br(),
+        content_counsel_row,  # Contatins Bar Graphs, hidden, replace with heatmap
+        html.Br(),
+        content_table_row
     ],
     style=CONTENT_STYLE
 )
 
 # TODO: Add dcc.loading when loading
 
-app = dash.Dash(external_stylesheets=[
-                dbc.themes.LUX, 'dash_board\styles\app.css'])
+app = dash.Dash(external_stylesheets=[dbc.themes.LUX, 'dash_board\assets\app.css'],
+                meta_tags=[{'name': 'viewport',
+                            'content': 'width=device-width, initial-scale=1.0'}]
+                )
 app.layout = html.Div([sidebar, content])
 
 
@@ -539,26 +574,51 @@ app.layout = html.Div([sidebar, content])
 # Donut Graph
 @app.callback(
     Output('donut-graph', 'figure'),
-    [Input('submit_button', 'n_clicks')],
-    [State('judgement-dropdown', 'value'), State('date-range-slider', 'value')])
-def update_graph_donut(n_clicks, dropdown_value, range_slider_value):
+    [Input(
+        'judgement-dropdown', 'value'), Input('date-range-slider', 'value')]
+)
+def update_graph_donut(dropdown_value, range_slider_value):
 
     judgement_df = df[(df['Year'] >= range_slider_value[0])
                       & (df['Year'] <= range_slider_value[1])]
 
+    judgement_df = judgement_df.loc[judgement_df['FinalJudgement'].isin(
+        dropdown_value)]
     jd_count = pd.DataFrame(judgement_df['FinalJudgement'].value_counts())
-    # jd_unique = judgement_df['FinalJudgement'].unique()
 
     jd_count.reset_index(inplace=True)
     jd_count.columns = ['Judgement', 'No. of Cases']
 
+    jd_unique = judgement_df.FinalJudgement.unique()
+
     # TODO: Add Legend
     fig_donut = px.pie(data_frame=jd_count.loc[jd_count['Judgement'].isin(dropdown_value)], values='No. of Cases',
-                       hover_name='Judgement', hole=0.6,
-                       color_discrete_sequence=['#f6511d', '#00a6ed', '#ffb400'])
+                       hover_name='Judgement', hole=0.6, color='Judgement',
+                       #                color_discrete_sequence=[
+                       # colors['blue'], colors['blue'], colors['yellow']],
+                       color_discrete_map={
+        'dismissed': colors['red'], 'allowed': colors['blue'], 'tied / unclear': colors['yellow']},
+
+    )
+
+    # fig_donut = customLegend(fig_donut, jd_unique)
+    # Dismissed  Allowed  Tied / Unclear
+    # for i in range(len(jd_unique)):
+    #     fig_donut.data[i].name = jd_unique[i]
 
     fig_donut.update_layout(transition_duration=1000)
-    fig_donut.update_layout(margin=dict(t=60, b=60, l=60, r=60))
+    fig_donut.update_layout(margin=dict(t=30, b=30, l=10, r=10))
+
+    fig_donut.update_traces(showlegend=True, selector=dict(type='pie'), )
+
+    fig_donut.update_traces(textposition='outside',
+                            textinfo='percent+label',
+                            marker=dict(line=dict(color='#000000',
+                                                        width=2)),
+                            pull=[0.05, 0, 0.03],
+                            opacity=0.9,
+                            # rotation=180
+                            )
 
     return fig_donut
 
@@ -567,10 +627,10 @@ def update_graph_donut(n_clicks, dropdown_value, range_slider_value):
 
 @app.callback(
     Output('line-graph', 'figure'),
-    [Input('submit_button', 'n_clicks')],
-    [State('judgement-dropdown', 'value'), State('date-range-slider', 'value')
-     ])
-def update_graph_line(n_clicks, dropdown_value, range_slider_value):
+    [Input(
+        'judgement-dropdown', 'value'), Input('date-range-slider', 'value')],
+)
+def update_graph_line(dropdown_value, range_slider_value):
 
     # Judgement filtering on the basis of selected dropdown values
     area_df = df.loc[df['FinalJudgement'].isin(dropdown_value)]
@@ -585,12 +645,31 @@ def update_graph_line(n_clicks, dropdown_value, range_slider_value):
     area_df.month_year = (pd.to_datetime(area_df.month_year))
     area_df = area_df.sort_values(by='month_year')
 
+    jd_unique = area_df.FinalJudgement.unique()
+
     fig = px.area(area_df, x='month_year', y='Judge',
                   color='FinalJudgement', labels={'FinalJudgement': 'Judgement'},
-                  color_discrete_sequence=['#00a6ed', '#f6511d', '#ffb400'])
+                  color_discrete_sequence=[
+                      colors['blue'], colors['red'], colors['yellow']],
+                  color_discrete_map={
+                      'dismissed': colors['red'], 'allowed': colors['blue'], 'tied / unclear': colors['yellow']},
+                  width=1050
+                  )
+
+    fig.update_layout(margin=dict(t=20, b=20, l=0, r=0))
+
+    fig.update_layout(legend=dict(
+        orientation="h",
+        yanchor="top",
+        y=1.02,
+        xanchor="right",
+        x=1
+    ))
 
     fig.update_layout(transition_duration=500)
+
     fig.update_xaxes(title_text='Date')
+    fig.update_yaxes(title_text='No. of Cases')
 
     return fig
 # TODO: Change color scheme of graphs (consistent color scheme)
@@ -661,10 +740,10 @@ def update_graph_line(n_clicks, dropdown_value, range_slider_value):
 # Petitioner Counsel
 @app.callback(
     Output('ac-heatmap', 'figure'),
-    [Input('submit_button', 'n_clicks')],
-    [State('judgement-dropdown', 'value'), State('date-range-slider', 'value')
-     ])
-def update_ac_heatmap(n_clicks, dropdown_value, range_slider_value):
+    [Input(
+        'judgement-dropdown', 'value'), Input('date-range-slider', 'value')]
+)
+def update_ac_heatmap(dropdown_value, range_slider_value):
 
     # Judgement filtering on the basis of selected dropdown values
     heat_df = cdf[(cdf['Year'] >= range_slider_value[0]) &
@@ -678,13 +757,14 @@ def update_ac_heatmap(n_clicks, dropdown_value, range_slider_value):
     data1.columns = data1.columns.droplevel(0)
 
     fig = px.imshow(data1, labels=dict(x="Petitioner Counsel", y="Judge", color="Efficacy")                    # ,x = data1.index.tolist(), y = data1.columns.tolist()
-                    # , width=1000, height=1000
+                    , width=1000,  # , height=1000,
+                    # autosize=True
                     )
 
-    fig.update_layout(margin=dict(t=20, b=20, l=5, r=5))
+    fig.update_layout(margin=dict(t=20, b=20, l=0, r=0))
 
     fig.update_xaxes(showticklabels=False)
-    fig.update_yaxes(showticklabels=False)
+    fig.update_yaxes(showticklabels=True)
 
     fig.update_layout(transition_duration=500)
 
@@ -694,10 +774,10 @@ def update_ac_heatmap(n_clicks, dropdown_value, range_slider_value):
 # Respondent Counsel
 @app.callback(
     Output('rc-heatmap', 'figure'),
-    [Input('submit_button', 'n_clicks')],
-    [State('judgement-dropdown', 'value'), State('date-range-slider', 'value')
-     ])
-def update_rc_heatmap(n_clicks, dropdown_value, range_slider_value):
+    [Input(
+        'judgement-dropdown', 'value'), Input('date-range-slider', 'value')]
+)
+def update_rc_heatmap(dropdown_value, range_slider_value):
 
     # Judgement filtering on the basis of selected dropdown values
     heat_df = cdf[(cdf['Year'] >= range_slider_value[0]) &
@@ -711,13 +791,13 @@ def update_rc_heatmap(n_clicks, dropdown_value, range_slider_value):
     data1.columns = data1.columns.droplevel(0)
 
     fig = px.imshow(data1, labels=dict(x="Respondent Counsel", y="Judge", color="Efficacy")                    # ,x = data1.index.tolist(), y = data1.columns.tolist()
-                    # , width=1000, height=1000
+                    , width=1000,  # height=1000
                     )
 
     fig.update_layout(margin=dict(t=20, b=20, l=5, r=5))
 
     fig.update_xaxes(showticklabels=False)
-    fig.update_yaxes(showticklabels=False)
+    fig.update_yaxes(showticklabels=True)
 
     fig.update_layout(transition_duration=500)
 
@@ -729,11 +809,11 @@ def update_rc_heatmap(n_clicks, dropdown_value, range_slider_value):
 @app.callback(
     Output("plaintiff-table", "data"),
     [Input("plaintiff-search-button", "n_clicks"),
-     Input('submit_button', 'n_clicks')],
+     ],
     [State("plaintiff-search", 'value'), State('judgement-dropdown',
                                                'value'), State('date-range-slider', 'value')],
 )
-def on_search_click_app(n_clicks, sub_clicks, search_value, dropdown_value, range_slider_value):
+def on_search_click_app(n_clicks, search_value, dropdown_value, range_slider_value):
 
     # Filtering by selected dates
     plaintiff_df = df[(df['Year'] >= range_slider_value[0])
@@ -765,11 +845,11 @@ def on_search_click_app(n_clicks, sub_clicks, search_value, dropdown_value, rang
 @app.callback(
     Output("defendant-table", "data"),
     [Input("defendant-search-button", "n_clicks"),
-     Input('submit_button', 'n_clicks')],
+     ],
     [State("defendant-search", 'value'), State('judgement-dropdown',
                                                'value'), State('date-range-slider', 'value')],
 )
-def on_search_click_resp(n_clicks, sub_clicks, search_value, dropdown_value, range_slider_value):
+def on_search_click_resp(n_clicks, search_value, dropdown_value, range_slider_value):
 
     # Filtering by selected dates
     defendant_df = df[(df['Year'] >= range_slider_value[0])
@@ -800,12 +880,12 @@ def on_search_click_resp(n_clicks, sub_clicks, search_value, dropdown_value, ran
 
 @app.callback(
     Output("petitioner-counsel-table", "data"),
-    [Input("pet-counsel-search-button", "n_clicks"),
-     Input('submit_button', 'n_clicks')],
+    [Input("pet-counsel-search-button", "n_clicks")
+     ],
     [State("pet-counsel-search", 'value'), State('judgement-dropdown',
                                                  'value'), State('date-range-slider', 'value')],
 )
-def on_search_click_ac(n_clicks, sub_clicks, search_value, dropdown_value, range_slider_value):
+def on_search_click_ac(n_clicks, search_value, dropdown_value, range_slider_value):
 
     # Filtering by selected dates
     pet_counsel_df = cdf[(cdf['Year'] >= range_slider_value[0])
@@ -838,11 +918,11 @@ def on_search_click_ac(n_clicks, sub_clicks, search_value, dropdown_value, range
 @app.callback(
     Output("defendant-counsel-table", "data"),
     [Input("resp-counsel-search-button", "n_clicks"),
-     Input('submit_button', 'n_clicks')],
+     ],
     [State("resp-counsel-search", 'value'), State('judgement-dropdown',
                                                   'value'), State('date-range-slider', 'value')],
 )
-def on_search_click_rc(n_clicks, sub_clicks, search_value, dropdown_value, range_slider_value):
+def on_search_click_rc(n_clicks, search_value, dropdown_value, range_slider_value):
 
     # Filtering by selected dates
     resp_counsel_df = cdf[(cdf['Year'] >= range_slider_value[0]) & (
@@ -875,7 +955,7 @@ def on_search_click_rc(n_clicks, sub_clicks, search_value, dropdown_value, range
 @app.callback(
     Output("cases-table", "data"),
     [Input("keyword-search-button", "n_clicks"),
-     #  Input('submit_button', 'n_clicks')
+     #  Input(' on', 'n_clicks')
      ],
     [State("keyword-search", 'value'), State('judgement-dropdown',
                                              'value'), State('date-range-slider', 'value')],
