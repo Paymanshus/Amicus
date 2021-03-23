@@ -245,7 +245,7 @@ controls = dbc.FormGroup(
 
 sidebar = html.Div(
     [
-        html.H2('Parameters', style=TEXT_STYLE),
+        html.H2('Filters', style=TEXT_STYLE),
         html.Hr(),
         # TODO: Add dcc.Tabs
         controls
@@ -345,7 +345,7 @@ content_third_row = dbc.Row([
             id='petitioner-counsel-table',
             # columns=[{"name": i, "id": i} for i in pet_counsel_df.columns],
             columns=[{"name": "Petitioner Counsel", "id": "PetitionerCounsel"}],
-            data=df[["PetitionerCounsel"]][:50].to_dict('records'),
+            data=df[["PetitionerCounsel"]][:50].dropna().to_dict('records'),
             page_action='none',
             fixed_rows={'headers': True},
 
@@ -393,7 +393,7 @@ content_third_row = dbc.Row([
             id='defendant-counsel-table',
             # columns=[{"name": i, "id": i} for i in resp_counsel_df.columns],
             columns=[{"name": "Respondent Counsel", "id": "RespondentCounsel"}],
-            data=df[['RespondentCounsel']][:50].to_dict('records'),
+            data=df[['RespondentCounsel']][:50].dropna().to_dict('records'),
             page_action='none',
             fixed_rows={'headers': True},
 
@@ -809,7 +809,7 @@ def on_search_click_ac(n_clicks, sub_clicks, search_value, dropdown_value, range
 
     # Filtering by selected dates
     pet_counsel_df = cdf[(cdf['Year'] >= range_slider_value[0])
-                         & (ccdf['Year'] <= range_slider_value[1])]
+                         & (cdf['Year'] <= range_slider_value[1])]
 
     # Filtering by selected Judgements from dropdown menu
     pet_counsel_df = pet_counsel_df.loc[pet_counsel_df['FinalJudgement'].isin(
@@ -825,13 +825,14 @@ def on_search_click_ac(n_clicks, sub_clicks, search_value, dropdown_value, range
         if (search_value != None or search_value != '' or search_value != ' '):
             search_values.extend([
                 search_value, search_value.lower(), search_value.upper()])
+
             return pet_counsel_df[pet_counsel_df['PetitionerCounsel'].str.contains(
-                '|'.join(search_values), na=False)].to_dict('records')
+                '|'.join(search_values), na=False)].dropna().to_dict('records')
             # return plaintiff_df[plaintiff_df['Plaintiff'].str.contains(
             #     (search_value))].to_dict('records')
 
     else:
-        return pet_counsel_df[:30].to_dict('records')
+        return pet_counsel_df[:30].dropna().to_dict('records')
 
 
 @app.callback(

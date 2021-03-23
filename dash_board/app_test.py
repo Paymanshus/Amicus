@@ -440,6 +440,7 @@ def render_sidebar_layout(tab):
 
     # Home
     if tab == 'tab-1':
+        print('tab-1 selected')
         return html.Div([
             dbc.FormGroup([
                 html.P('Range Slider', style={
@@ -500,6 +501,38 @@ def render_sidebar_layout(tab):
                 ),
                 html.Br(),
 
+
+                dbc.Button(
+                    id='submit_button',
+                    n_clicks=0,
+                    children='Submit',
+                    color='primary',
+                    block=True
+                ),
+            ]
+            )
+        ])
+
+    
+    # Counsel
+    elif tab == 'tab-2':
+        print('tab-1 selected')
+        return dbc.FormGroup([
+                html.P('Range Slider', style={
+                    'textAlign': 'center'
+                }),
+                dcc.RangeSlider(
+                    id='date-range-slider',
+                    min=2015,
+                    max=2021,
+                    step=1,
+                    marks={2015: '2015', 2018: '2018',  2021: '2021'},
+                    value=[2015, 2021],
+                    pushable=1
+                ),
+                # html.Br(),
+
+                # MAIN TAB
                 # COUSNEL TAB
                 html.P('Petitioner Counsel Search',
                        style={
@@ -533,67 +566,6 @@ def render_sidebar_layout(tab):
                 ]
                 ),
                 html.Br(),
-
-
-                dbc.Button(
-                    id='submit_button',
-                    n_clicks=0,
-                    children='Submit',
-                    color='primary',
-                    block=True
-                ),
-            ]
-            )
-        ])
-
-    # Counsel
-    elif tab == 'tab-2':
-        return dbc.FormGroup([
-            html.P('Range Slider', style={
-                'textAlign': 'center'
-            }),
-            dcc.RangeSlider(
-                id='date-range-slider',
-                min=2015,
-                max=2021,
-                step=1,
-                marks={2015: '2015', 2018: '2018',  2021: '2021'},
-                value=[2015, 2021],
-                pushable=1
-            ),
-            # html.Br(),
-
-            # MAIN TAB
-            html.P('Plaintiff Search',
-                   style={
-                       'textAlign': 'center'
-                   }),
-            dbc.InputGroup([
-
-                dbc.InputGroupAddon(
-                    dbc.Button("Search", id="plaintiff-search-button")
-                ),
-                dbc.Input(
-                    id='plaintiff-search',
-                    placeholder='Search for Plaintiff...'),
-            ]
-            ),
-
-            html.P('Defendant Search',
-                   style={
-                       'textAlign': 'center'
-                   }),
-            dbc.InputGroup([
-
-                dbc.InputGroupAddon(
-                    dbc.Button("Search", id="defendant-search-button")
-                ),
-                dbc.Input(
-                    id='defendant-search',
-                    placeholder='Search for Defendant...'),
-            ]
-            ),
-            html.Br(),
 
             html.P('Type of Judgement', style={
                 'textAlign': 'center'
