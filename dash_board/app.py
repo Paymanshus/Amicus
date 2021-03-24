@@ -161,6 +161,19 @@ cdf = date_time_extractor(cdf, 'DateFiled')
 # -------------------------------------Layout-------------------------------------
 controls = dbc.FormGroup(
     [
+        html.Div([
+            dcc.Tabs(id='tabs-id', value='tab-1', children=[
+                dcc.Tab(label='Home',
+                        value='tab-1',
+                        className='custom-tab',
+                        selected_className='custom-tab--selected'),
+                dcc.Tab(label='Cases',
+                        value='tab-2',
+                        className='custom-tab',
+                        selected_className='custom-tab--selected'),
+            ]),
+        ]),
+        html.Br(),
         html.P('Range Slider', style={
             'textAlign': 'center'
         }),
@@ -260,14 +273,16 @@ controls = dbc.FormGroup(
         #     block=True
         # ),
 
-        dbc.Button(
-            id='switch-button',
-            n_clicks=0,
-            children='View Cases',
-            color='primary',
-            block=True,
-            href='/apps/cases'
-        ),
+        # dbc.Button(
+        #     id='switch-button',
+        #     n_clicks=0,
+        #     children='View Cases',
+        #     color='primary',
+        #     block=True,
+        #     href='/apps/cases'
+        # ),
+
+
     ]
 )
 
@@ -494,16 +509,16 @@ content_case_row = dbc.Row(
                 fixed_rows={'headers': True},
 
 
-                css=[{
-                    'selector': '.dash-spreadsheet td div',
-                    'rule': '''
-                    line-height: 15px;
-                    max-height: 60px; min-height: 60px; height: 60px;
-                   
-                    display: block;
-                    overflow-y: auto;
-                '''
-                }],
+                # css=[{
+                #     'selector': '.dash-spreadsheet td div',
+                #     'rule': '''
+                #     line-height: 30px;
+                #     max-height: 160px; min-height: 60px; height: 60px;
+
+                #     display: block;
+                #     overflow-y: auto;
+                # '''
+                # }],
 
                 # tooltip_data=[
                 #     {
@@ -530,17 +545,17 @@ content_case_row = dbc.Row(
                     'fontWeight': 'bold'
                 },
                 style_cell_conditional=[{'textAlign': 'left'}],
-                style_table={'height': '300px', 'overflow': 'hidden'}
+                style_table={'overflow': 'hidden'}
             ), md=12
         )
-    ], style={'padding': '20px 0px'}
+    ], style={'height': '500px', 'padding': '20px 0px'}
 )
 
-content = html.Div(
+main_content = html.Div(
     [
         html.H2('Amicus.ai', style=TEXT_STYLE),
         html.Hr(),
-        content_search_row,
+        # content_search_row,
         html.H3('Visualisations'),
         html.H5('Case Count per Judgement Type', style=TEXT_STYLE),
         content_donut_row,
@@ -559,13 +574,29 @@ content = html.Div(
     style=CONTENT_STYLE
 )
 
+
+case_content = html.Div(
+    [
+        html.H2('Amicus.ai', style=TEXT_STYLE),
+        html.Hr(),
+        content_search_row,
+        # html.H5('Data Tables', style=TEXT_STYLE),
+        content_case_row,  # Contatins Bar Graphs, hidden, replace with heatmap
+        html.Br(),
+    ],
+    style=CONTENT_STYLE
+)
+
 # TODO: Add dcc.loading when loading
 
 app = dash.Dash(external_stylesheets=[dbc.themes.LUX, 'dash_board\assets\app.css'],
                 meta_tags=[{'name': 'viewport',
-                            'content': 'width=device-width, initial-scale=1.0'}]
+                            'content': 'width=device-width, initial-scale=1.0'}],
+                suppress_callback_exceptions=True
                 )
-app.layout = html.Div([sidebar, content])
+app.layout = html.Div([sidebar,
+                       html.Div(id='tabs-content')
+                       ])
 
 
 # -------------------------------------Callbacks-------------------------------------
@@ -828,8 +859,8 @@ def on_search_click_app(n_clicks, search_value, dropdown_value, range_slider_val
 
     search_values = []
 
-    # if n_clicks:
-    if (n_clicks != None) | (sub_clicks != None):
+    if n_clicks:
+        # if (n_clicks != None) | (sub_clicks != None):
         if (search_value != None or search_value != '' or search_value != ' '):
             search_values.extend([
                 search_value, search_value.lower(), search_value.upper()])
@@ -864,8 +895,8 @@ def on_search_click_resp(n_clicks, search_value, dropdown_value, range_slider_va
 
     search_values = []
 
-    # if n_clicks:
-    if (n_clicks != None) | (sub_clicks != None):
+    if n_clicks:
+        # if (n_clicks != None) | (sub_clicks != None):
         if (search_value != None or search_value != '' or search_value != ' '):
             search_values.extend([
                 search_value, search_value.lower(), search_value.upper()])
@@ -900,8 +931,8 @@ def on_search_click_ac(n_clicks, search_value, dropdown_value, range_slider_valu
 
     search_values = []
 
-    # if n_clicks:
-    if (n_clicks != None) | (sub_clicks != None):
+    if n_clicks:
+        # if (n_clicks != None) | (sub_clicks != None):
         if (search_value != None or search_value != '' or search_value != ' '):
             search_values.extend([
                 search_value, search_value.lower(), search_value.upper()])
@@ -938,8 +969,8 @@ def on_search_click_rc(n_clicks, search_value, dropdown_value, range_slider_valu
 
     search_values = []
 
-    # if n_clicks:
-    if (n_clicks != None) | (sub_clicks != None):
+    if n_clicks:
+        # if (n_clicks != None) | (sub_clicks != None):
         if (search_value != None or search_value != '' or search_value != ' '):
             search_values.extend([
                 search_value, search_value.lower(), search_value.upper()])
@@ -986,6 +1017,19 @@ def on_search_click_case(n_clicks, search_value, dropdown_value, range_slider_va
 
     else:
         return case_df.iloc[:30].to_dict('records')
+
+
+@app.callback(Output('tabs-content', 'children'),
+              Input('tabs-id', 'value'))
+def render_content(tab):
+    if tab == 'tab-1':
+        return html.Div([
+            main_content
+        ])
+    elif tab == 'tab-2':
+        return html.Div([
+            case_content
+        ])
 
 
 if __name__ == '__main__':
