@@ -141,7 +141,7 @@ def extract_respondents(row, fl=2, print_st=True):
         print(f"Extracted Respondent Sentence: {respondent_sentence}")
 
     # Keyword Removal
-    things_to_remove = ['for', 'counsel', 'Respondent', 'Plaintiff', 'Defendant', 'petitioner', 'Appellant', 'under appointment by the Court of' /,
+    things_to_remove = ['for', 'counsel', 'Respondent', 'Plaintiff', 'Defendant', 'petitioner', 'Appellant', 'under appointment by the Court of',
                         'and'
                         ]
 
