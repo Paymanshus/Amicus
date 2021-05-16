@@ -55,7 +55,7 @@ CARD_TEXT_STYLE = {
 colors = {'red': '#f6511d', 'blue': '#00a6ed', 'yellow': '#ffb400'}
 
 df = pd.read_csv(
-    r"D:\aaProjectsStuff\Amicus\Dashboard\newpartidk.csv")
+    r"D:\aaProjectsStuff\Amicus\Dashboard\FinalData.csv")
 
 cdf = pd.read_csv(
     r"D:\aaProjectsStuff\Amicus\Dashboard\dummy.csv"
@@ -610,8 +610,10 @@ app.layout = html.Div([sidebar,
 )
 def update_graph_donut(dropdown_value, range_slider_value):
 
-    judgement_df = df[(df['Year'] >= range_slider_value[0])
-                      & (df['Year'] <= range_slider_value[1])]
+    judgement_df = df.dropna(axis=0, subset=['FinalJudgement', 'DateFiled'])
+
+    judgement_df = judgement_df[(judgement_df['Year'] >= range_slider_value[0])
+                                & (judgement_df['Year'] <= range_slider_value[1])]
 
     judgement_df = judgement_df.loc[judgement_df['FinalJudgement'].isin(
         dropdown_value)]
@@ -663,28 +665,30 @@ def update_graph_donut(dropdown_value, range_slider_value):
 )
 def update_graph_line(dropdown_value, range_slider_value):
 
+    area_df = df.dropna(axis=0, subset=['FinalJudgement', 'DateFiled'])
+
     # Judgement filtering on the basis of selected dropdown values
-    area_df = df.loc[df['FinalJudgement'].isin(dropdown_value)]
+    area_df = area_df.loc[area_df['FinalJudgement'].isin(dropdown_value)]
 
     area_df = area_df[(area_df['Year'] >= range_slider_value[0]) & (
         area_df['Year'] <= range_slider_value[1])]
 
     # DateTime conversions for area graph
     area_df = area_df.groupby(
-        ['month_year', 'FinalJudgement']).count()['Judge']
+        ['month_year', 'FinalJudgement']).count()['DateFiled']
     area_df = area_df.reset_index()
     area_df.month_year = (pd.to_datetime(area_df.month_year))
     area_df = area_df.sort_values(by='month_year')
 
     jd_unique = area_df.FinalJudgement.unique()
 
-    fig = px.area(area_df, x='month_year', y='Judge',
-                  color='FinalJudgement', labels={'FinalJudgement': 'Judgement'},
+    fig = px.area(area_df, x='month_year', y='DateFiled',
+                  color='FinalJudgement', labels={'FinalJudgement': 'Judgement', "DateFiled": "No. of Cases"},
                   color_discrete_sequence=[
                       colors['blue'], colors['red'], colors['yellow']],
                   color_discrete_map={
                       'dismissed': colors['red'], 'allowed': colors['blue'], 'tied / unclear': colors['yellow']},
-                  width=1050
+                  width=1050,
                   )
 
     fig.update_layout(margin=dict(t=20, b=20, l=0, r=0))
@@ -775,6 +779,9 @@ def update_graph_line(dropdown_value, range_slider_value):
 )
 def update_ac_heatmap(dropdown_value, range_slider_value):
 
+    # heat_df = df.dropna(
+    #     axis=0, subset=['PetitionerCounsel', 'Judge', 'FinalJudgement'])
+
     # Judgement filtering on the basis of selected dropdown values
     heat_df = cdf[(cdf['Year'] >= range_slider_value[0]) &
                   (cdf['Year'] <= range_slider_value[1])]
@@ -809,6 +816,9 @@ def update_ac_heatmap(dropdown_value, range_slider_value):
         'judgement-dropdown', 'value'), Input('date-range-slider', 'value')]
 )
 def update_rc_heatmap(dropdown_value, range_slider_value):
+
+    # heat_df = df.dropna(
+    #     axis=0, subset=['RespondentCounsel', 'Judge', 'FinalJudgement'])
 
     # Judgement filtering on the basis of selected dropdown values
     heat_df = cdf[(cdf['Year'] >= range_slider_value[0]) &
