@@ -67,8 +67,10 @@ def getSections(caseFile):
     rulesOfCourt = re.findall("Cal. Rules of Court, rule [\d]+.[\d]+", text)
     temp1 = re.findall("rule [\d]+.[\d]+", text)
     temp2 = re.findall('[[\w.]* [c|C]ode.]? § [\d]+.[\d]*[(]*[\w]*[)]*', text)     #for section symbol press ALT + 0167 to get §
-    temp3 = re.findall('§ [\d]+.[\d]*[(]*[\w]*[)]*[)]? ',text)
-    rulesOfCourt.extend(temp1, temp2, temp3)
+    temp3 = re.findall('§ [\d]+.[\d]*[(]*[\w]*[)]*[)]? ', text)
+    rulesOfCourt.extend(temp1)
+    rulesOfCourt.extend(temp2)
+    rulesOfCourt.extend(temp3)
 
     # Removing Redundant Values from The Findings
     sections = list(set(sections))
