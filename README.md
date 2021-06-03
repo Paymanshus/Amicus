@@ -13,7 +13,7 @@
   <h3 align="center">Amicus.ai</h3>
 
   <p align="center">
-    project_description
+    Helping law firms leverage data and providing them with Intelligent Machine Learning based insights.
     <br />
     <a href="https://github.com/Paymanshus/Amicus"><strong>View the demo »</strong></a>
     <br />
@@ -34,14 +34,14 @@
       <a href="#getting-started">Getting Started</a>
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
+        <li><a href="#running-the-dashboard">Running the Dashboard</a></li>
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
     <!-- <li><a href="#roadmap">Roadmap</a></li>     -->
     <li><a href="#license">License and Usage</a></li>
     <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgements">Acknowledgements</a></li>
+    <!-- <li><a href="#acknowledgements">Acknowledgements</a></li> -->
   </ol>
 </details>
 
@@ -49,7 +49,7 @@
 
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+![Product Name Screen Shot][product-screenshot]
 
 <!-- ### Built With
 
@@ -99,7 +99,9 @@ pip install -r requirements.txt
 
 ## Usage
 
-_Loom video to be added soon_
+<!-- _Loom video to be added soon_ -->
+
+![Product Demo Video][product-video]
 
 <!-- _For more examples, please refer to the [Documentation](https://example.com)_ -->
 
@@ -148,4 +150,5 @@ Project Link: [https://github.com/Paymanshus/Amicus](https://github.com/Paymansh
 [license-url]: https://github.com/Paymanshus/repo/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/company/amicus-ai
-[product-screenshot]: Assets/screenshot.png
+[product-screenshot]: Assets/home1_full.png
+[product-video]: Assets/demo_crop.gif
