@@ -15,7 +15,7 @@
   <p align="center">
     Helping law firms leverage data and providing them with Intelligent Machine Learning based insights.
     <br />
-    <a href="https://github.com/Paymanshus/Amicus"><strong>View the demo »</strong></a>
+    <!-- <a href="https://github.com/Paymanshus/Amicus"><strong>View the demo »</strong></a> -->
     <br />
 </p>
 
@@ -138,7 +138,7 @@ Project Link: [https://github.com/Paymanshus/Amicus](https://github.com/Paymansh
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 
-[contributors-shield]: https://img.shields.io/github/contributors/Paymanshus/repo.svg?style=for-the-badge
+[contributors-shield]: https://img.shields.io/github/contributors/Paymanshus/Amicus.svg?style=for-the-badge
 [contributors-url]: https://github.com/Paymanshus/Amicus/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/Paymanshus/repo.svg?style=for-the-badge
 [forks-url]: https://github.com/Paymanshus/repo/network/members
