@@ -36,7 +36,7 @@ def getCitations(caseFile):
         for j in temp:
             # Only Adding The Citation if Each Part Of the Separated Citation is a citation itself
             if re.search('[ ]+[v]+[.]+', j):
-                citations.append(j.strip())
+                citations.append(j.replace('see', '').replace('See', '').strip())
 
     # Removing Redundant Values From Printing   
     citations = list(set(citations))
